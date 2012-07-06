@@ -1,0 +1,134 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{610523B4-A5A6-4D3A-A10F-DAFE02D49B9D}</ProjectGuid>
+    <ProjectTypeGuids>{2DF5C3F4-5A5F-47a9-8E94-23B4456F55E2};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">Xbox 360</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>JigLibX</RootNamespace>
+    <AssemblyName>JigLibX</AssemblyName>
+    <XnaFrameworkVersion>v2.0</XnaFrameworkVersion>
+    <XnaPlatform>Xbox 360</XnaPlatform>
+    <XnaCrossPlatformGroupID>2af3fde3-ae48-4bfb-bee8-bd145b04aa0b</XnaCrossPlatformGroupID>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Debug</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;XBOX;XBOX360</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Xbox 360' ">
+    <OutputPath>bin\Xbox 360\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XBOX;XBOX360</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Collision\CollisionInfo.cs" />
+    <Compile Include="Collision\CollisionSkin.cs" />
+    <Compile Include="Collision\CollisionSystem.cs" />
+    <Compile Include="Collision\CollisionSystemBrute.cs" />
+    <Compile Include="Collision\CollisionSystemGrid.cs" />
+    <Compile Include="Collision\Detection\BoxBox.cs" />
+    <Compile Include="Collision\Detection\BoxHeightmap.cs" />
+    <Compile Include="Collision\Detection\BoxStaticMesh.cs" />
+    <Compile Include="Collision\Detection\CapsuleBox.cs" />
+    <Compile Include="Collision\Detection\CapsuleCapsule.cs" />
+    <Compile Include="Collision\Detection\CapsuleHeightmap.cs" />
+    <Compile Include="Collision\Detection\CapsuleStaticMesh.cs" />
+    <Compile Include="Collision\Detection\BoxPlane.cs" />
+    <Compile Include="Collision\Detection\CapsulePlane.cs" />
+    <Compile Include="Collision\Detection\SpherePlane.cs" />
+    <Compile Include="Collision\Detection\DetectFunctor.cs" />
+    <Compile Include="Collision\Detection\SphereBox.cs" />
+    <Compile Include="Collision\Detection\SphereCapsule.cs" />
+    <Compile Include="Collision\Detection\SphereHeightmap.cs" />
+    <Compile Include="Collision\Detection\SphereSphere.cs" />
+    <Compile Include="Collision\Detection\SphereStaticMesh.cs" />
+    <Compile Include="Collision\Materials.cs" />
+    <Compile Include="Geometry\Primitives\AABox.cs" />
+    <Compile Include="Geometry\Distance.cs" />
+    <Compile Include="Geometry\IndexedTriangle.cs" />
+    <Compile Include="Geometry\Intersection.cs" />
+    <Compile Include="Geometry\Line.cs" />
+    <Compile Include="Geometry\Octree.cs" />
+    <Compile Include="Geometry\Overlap.cs" />
+    <Compile Include="Geometry\Primitives\Box.cs" />
+    <Compile Include="Geometry\Primitives\Capsule.cs" />
+    <Compile Include="Geometry\Primitives\Heightmap.cs" />
+    <Compile Include="Geometry\Primitives\Plane.cs" />
+    <Compile Include="Geometry\Primitives\Primitive.cs" />
+    <Compile Include="Geometry\Primitives\Sphere.cs" />
+    <Compile Include="Geometry\Primitives\TriangleMesh.cs" />
+    <Compile Include="Geometry\Rectangle.cs" />
+    <Compile Include="Geometry\Triangle.cs" />
+    <Compile Include="JigLibX.cs" />
+    <Compile Include="JigLibXException.cs" />
+    <Compile Include="Math\JiggleMath.cs" />
+    <Compile Include="Math\Transform.cs" />
+    <Compile Include="Physics\Body.cs" />
+    <Compile Include="Physics\Constraint.cs" />
+    <Compile Include="Physics\ConstraintMaxDistance.cs" />
+    <Compile Include="Physics\ConstraintPoint.cs" />
+    <Compile Include="Physics\ConstraintVelocity.cs" />
+    <Compile Include="Physics\ConstraintWorldPoint.cs" />
+    <Compile Include="Physics\Controller.cs" />
+    <Compile Include="Physics\HingeJoint.cs" />
+    <Compile Include="Physics\Joint.cs" />
+    <Compile Include="Physics\PhysicsCollision.cs" />
+    <Compile Include="Physics\PhysicsSystem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\Array2D.cs" />
+    <Compile Include="Utils\JiggleUnsafe.cs" />
+    <Compile Include="Vehicles\Car.cs" />
+    <Compile Include="Vehicles\Chassis.cs" />
+    <Compile Include="Vehicles\Wheel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <NestedContentProject Include="Content\Content.contentproj">
+      <Project>916accf4-f6be-4dc8-a182-40e6fa419015</Project>
+      <Visible>False</Visible>
+    </NestedContentProject>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="mscorlib">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v2.0\Microsoft.Xna.GameStudio.Common.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\v2.0\Microsoft.Xna.GameStudio.NestedContent.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,200 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <ProjectGuid>{8A7CEF45-3501-491D-AEDA-0164060F5348}</ProjectGuid>
+    <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>JigLibX</RootNamespace>
+    <AssemblyName>JigLibX</AssemblyName>
+    <XnaFrameworkVersion>v3.1</XnaFrameworkVersion>
+    <XnaPlatform>Windows</XnaPlatform>
+    <XnaCrossPlatformGroupID>2af3fde3-ae48-4bfb-bee8-bd145b04aa0b</XnaCrossPlatformGroupID>
+    <XnaUpgrade>
+    </XnaUpgrade>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Engine\Lib\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;WINDOWS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Release</OutputPath>
+    <DefineConstants>TRACE;WINDOWS</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoStdLib>true</NoStdLib>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XnaCompressContent>True</XnaCompressContent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d" />
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d" />
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=3.1.0.0, Culture=neutral, PublicKeyToken=6d5c3888ef60e27d" />
+    <Reference Include="mscorlib">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collision\CollisionInfo.cs" />
+    <Compile Include="Collision\CollisionSkin.cs" />
+    <Compile Include="Collision\CollisionSystem.cs" />
+    <Compile Include="Collision\CollisionSystemBrute.cs" />
+    <Compile Include="Collision\CollisionSystemGrid.cs" />
+    <Compile Include="Collision\CollisionSystemSAP.cs" />
+    <Compile Include="Collision\Detection\BoxBox.cs" />
+    <Compile Include="Collision\Detection\BoxHeightmap.cs" />
+    <Compile Include="Collision\Detection\BoxStaticMesh.cs" />
+    <Compile Include="Collision\Detection\CapsuleBox.cs" />
+    <Compile Include="Collision\Detection\CapsuleCapsule.cs" />
+    <Compile Include="Collision\Detection\CapsuleHeightmap.cs" />
+    <Compile Include="Collision\Detection\CapsuleStaticMesh.cs" />
+    <Compile Include="Collision\Detection\BoxPlane.cs" />
+    <Compile Include="Collision\Detection\CapsulePlane.cs" />
+    <Compile Include="Collision\Detection\SpherePlane.cs" />
+    <Compile Include="Collision\Detection\DetectFunctor.cs" />
+    <Compile Include="Collision\Detection\SphereBox.cs" />
+    <Compile Include="Collision\Detection\SphereCapsule.cs" />
+    <Compile Include="Collision\Detection\SphereHeightmap.cs" />
+    <Compile Include="Collision\Detection\SphereSphere.cs" />
+    <Compile Include="Collision\Detection\SphereStaticMesh.cs" />
+    <Compile Include="Collision\Materials.cs" />
+    <Compile Include="Geometry\KDTreeTriangles.cs" />
+    <Compile Include="Geometry\Primitives\AABox.cs" />
+    <Compile Include="Geometry\Distance.cs" />
+    <Compile Include="Geometry\IndexedTriangle.cs" />
+    <Compile Include="Geometry\Intersection.cs" />
+    <Compile Include="Geometry\Line.cs" />
+    <Compile Include="Geometry\Octree.cs" />
+    <Compile Include="Geometry\Overlap.cs" />
+    <Compile Include="Geometry\Primitives\Box.cs" />
+    <Compile Include="Geometry\Primitives\Capsule.cs" />
+    <Compile Include="Geometry\Primitives\Heightmap.cs" />
+    <Compile Include="Geometry\Primitives\Plane.cs" />
+    <Compile Include="Geometry\Primitives\Primitive.cs" />
+    <Compile Include="Geometry\Primitives\Sphere.cs" />
+    <Compile Include="Geometry\Primitives\TriangleMesh.cs" />
+    <Compile Include="Geometry\Rectangle.cs" />
+    <Compile Include="Geometry\Triangle.cs" />
+    <Compile Include="JigLibX.cs" />
+    <Compile Include="Math\JiggleMath.cs" />
+    <Compile Include="Math\Transform.cs" />
+    <Compile Include="Physics\Body.cs" />
+    <Compile Include="Physics\Constraint.cs" />
+    <Compile Include="Physics\ConstraintMaxDistance.cs" />
+    <Compile Include="Physics\ConstraintPoint.cs" />
+    <Compile Include="Physics\ConstraintVelocity.cs" />
+    <Compile Include="Physics\ConstraintWorldPoint.cs" />
+    <Compile Include="Physics\Controller.cs" />
+    <Compile Include="Physics\HingeJoint.cs" />
+    <Compile Include="Physics\Joint.cs" />
+    <Compile Include="Physics\PhysicsCollision.cs" />
+    <Compile Include="Physics\PhysicsSystem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\Array2D.cs" />
+    <Compile Include="Utils\BodyRenderExtension.cs" />
+    <Compile Include="Utils\JiggleUnsafe.cs" />
+    <Compile Include="Vehicles\Car.cs" />
+    <Compile Include="Vehicles\Chassis.cs" />
+    <Compile Include="Vehicles\Wheel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <NestedContentProject Include="Content\Content.contentproj">
+      <Project>916accf4-f6be-4dc8-a182-40e6fa419015</Project>
+      <Visible>False</Visible>
+    </NestedContentProject>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Xna.Framework.3.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft XNA Framework Redistributable 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" Condition="" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
