@@ -30,9 +30,9 @@ namespace Gaia.Core
             {
                 worldMatrix = Matrix.Identity;
                 worldMatrix.Up = normal;
-                worldMatrix.Right = new Vector3(normal.Y, normal.Z, normal.X);
-                worldMatrix.Forward = new Vector3(normal.Z, normal.X, normal.Y);
-                worldMatrix = Matrix.CreateScale(new Vector3(scale.X, 1, scale.Y)) * worldMatrix;
+                worldMatrix.Right = Vector3.Normalize(new Vector3(normal.Z, normal.X, normal.Y));
+                worldMatrix.Forward = Vector3.Normalize(Vector3.Cross(worldMatrix.Up, worldMatrix.Right));
+                worldMatrix = Matrix.CreateScale(scale) * worldMatrix;
                 worldMatrix.Translation = position;
             }
             

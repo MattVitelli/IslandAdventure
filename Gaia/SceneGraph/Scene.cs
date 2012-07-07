@@ -248,7 +248,7 @@ namespace Gaia.SceneGraph
             
             for (int i = 0; i < 250; i++)
             {
-                Model tree = new Model("Cecropia");
+                Model tree = new Model("Palm01");
                 NormalTransform transform = new NormalTransform();
                 tree.Transformation = transform;
                 Vector3 pos = Vector3.Zero;

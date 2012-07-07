@@ -56,7 +56,7 @@ namespace Gaia.SceneGraph.GameEntities
         public TerrainVoxel()
         {
             Transformation.SetScale(Vector3.One * TerrainSize);
-            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.45f);
+            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
             GenerateFloatingIslands(128);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
         }
