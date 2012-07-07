@@ -69,7 +69,6 @@ namespace Gaia
             mainScene = new Scene();
             playerScreen = new PlayerScreen(mainScene);
             editor = new LevelEditor(mainScene);
-            this.IsMouseVisible = true;
             /*
             using (FileStream fs = new FileStream("Graphics.txt", FileMode.Create))
             {
@@ -257,7 +256,6 @@ namespace Gaia
             mainScene.Render();
             playerScreen.OnRender();
             GFX.Inst.RenderGUI();
-
 
             base.Draw(gameTime);
         }

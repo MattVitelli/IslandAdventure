@@ -15,7 +15,7 @@ namespace Gaia.Resources
 
         public string Name { get { return name; } }
 
-        const int textureCounts = 8;
+        const int textureCounts = 16;
 
         TextureResource[] textures = new TextureResource[textureCounts];
 
