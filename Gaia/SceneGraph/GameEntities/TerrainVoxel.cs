@@ -65,7 +65,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         public TerrainVoxel(string filename)
         {
-            Transformation.SetScale(Vector3.One * TerrainSize);
+            Transformation.SetScale(new Vector3(1, 0.125f, 1) * TerrainSize);
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
 
             GenerateTerrainFromFile(filename);
@@ -198,7 +198,7 @@ namespace Gaia.SceneGraph.GameEntities
                 {
                     for (int x = voxelMinX; x <= voxelMaxX; x++)
                     {
-                        int voxelIndex = x + (y + z * voxelCount) * voxelCount;
+                        int voxelIndex = x + (y + z * voxelCountY) * voxelCountX;
                         if (Voxels[voxelIndex].CanRender)
                         {
                             KDTree<TriangleGraph> collisionTree = Voxels[voxelIndex].GetCollisionTree();
@@ -218,20 +218,20 @@ namespace Gaia.SceneGraph.GameEntities
             int randZ = 0;
             while(bestY == -1)
             {
-                randX = rand.Next(DensityFieldSize-1);
-                randZ = rand.Next(DensityFieldSize-1);
-                int vX = (int)MathHelper.Clamp(((float)randX/(float)DensityFieldSize) * VoxelGridSize, 0, VoxelGridSize - 1);
+                randX = rand.Next(DensityFieldWidth- 1);
+                randZ = rand.Next(DensityFieldDepth-1);
+                int vX = (int)MathHelper.Clamp(((float)randX / (float)DensityFieldWidth) * VoxelGridSize, 0, VoxelGridSize - 1);
                 
-                int vZ = (int)MathHelper.Clamp(((float)randZ / (float)DensityFieldSize) * VoxelGridSize, 0, VoxelGridSize - 1);
-                int index = randX + randZ * DensityFieldSize * DensityFieldSize;
+                int vZ = (int)MathHelper.Clamp(((float)randZ / (float)DensityFieldDepth) * VoxelGridSize, 0, VoxelGridSize - 1);
+                int index = randX + randZ * DensityFieldWidth * DensityFieldHeight;
                 int voxelIndex = vX + vZ * VoxelGridSize * VoxelGridSize;
-                for (int i = 0; i < DensityFieldSize; i++)
+                for (int i = 0; i < DensityFieldHeight; i++)
                 {
-                    int vY = (int)MathHelper.Clamp(((float)i/(float)DensityFieldSize) * VoxelGridSize, 0, VoxelGridSize - 1);
-                    if(DensityField[index+i*DensityFieldSize] <= (IsoValue+10) && Voxels[voxelIndex + vY].CanRender)
+                    int vY = (int)MathHelper.Clamp(((float)i / (float)DensityFieldHeight) * VoxelGridSize, 0, VoxelGridSize - 1);
+                    if (DensityField[index + i * DensityFieldWidth] <= (IsoValue + 10) && Voxels[voxelIndex + vY].CanRender)
                     {
                         SortedList<ulong, TriangleGraph> graph = null;
-                        if (Voxels[voxelIndex + vY].GetCollisionNodesAtPoint(out graph, ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, randX, i, randZ))
+                        if (Voxels[voxelIndex + vY].GetCollisionNodesAtPoint(out graph, ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, randX, i, randZ))
                         {
                             bestY = i;
                             break;
@@ -240,21 +240,21 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-            Vector3 vec = new Vector3((float)randX, 1.0f+(float)bestY, (float)randZ) / (float)(DensityFieldSize - 1);
+            Vector3 vec = new Vector3((float)randX, 1.0f + (float)bestY, (float)randZ) / new Vector3(DensityFieldWidth - 1, DensityFieldHeight - 1, DensityFieldDepth - 1);
             position = Vector3.Transform(2.0f * vec - Vector3.One, Transformation.GetTransform());
             normal = ComputeNormal(randX, bestY, randZ);
         }
 
         Vector3 ComputeNormal(int x, int y, int z)
         {
-            int sliceArea = DensityFieldSize * DensityFieldSize;
-            int idx = x + DensityFieldSize * y + z * sliceArea;
+            int sliceArea = DensityFieldWidth * DensityFieldHeight;
+            int idx = x + DensityFieldWidth * y + z * sliceArea;
             int x0 = (x - 1 >= 0) ? -1 : 0;
-            int x1 = (x + 1 < DensityFieldSize) ? 1 : 0;
-            int y0 = (y - 1 >= 0) ? -DensityFieldSize : 0;
-            int y1 = (y + 1 < DensityFieldSize) ? DensityFieldSize : 0;
+            int x1 = (x + 1 < DensityFieldWidth) ? 1 : 0;
+            int y0 = (y - 1 >= 0) ? -DensityFieldWidth : 0;
+            int y1 = (y + 1 < DensityFieldHeight) ? DensityFieldWidth : 0;
             int z0 = (z - 1 >= 0) ? -sliceArea : 0;
-            int z1 = (z + 1 < DensityFieldSize) ? sliceArea : 0;
+            int z1 = (z + 1 < DensityFieldDepth) ? sliceArea : 0;
 
             //Take the negative gradient (hence the x0-x1)
             Vector3 nrm = new Vector3(DensityField[idx + x0] - DensityField[idx + x1], DensityField[idx + y0] - DensityField[idx + y1], DensityField[idx + z0] - DensityField[idx + z1]);
@@ -273,11 +273,11 @@ namespace Gaia.SceneGraph.GameEntities
             Vector3 posObjSpace = Vector3.Transform(pos, Transformation.GetObjectSpace());
 
             posObjSpace = posObjSpace * 0.5f + Vector3.One * 0.5f;
-            posObjSpace *= DensityFieldSize;
+            posObjSpace *= new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth);
 
-            xPos = (int)MathHelper.Clamp(posObjSpace.X, 0, DensityFieldSize - 1);
-            yPos = (int)MathHelper.Clamp(posObjSpace.Y, 0, DensityFieldSize - 1);
-            zPos = (int)MathHelper.Clamp(posObjSpace.Z, 0, DensityFieldSize - 1);
+            xPos = (int)MathHelper.Clamp(posObjSpace.X, 0, DensityFieldWidth - 1);
+            yPos = (int)MathHelper.Clamp(posObjSpace.Y, 0, DensityFieldHeight - 1);
+            zPos = (int)MathHelper.Clamp(posObjSpace.Z, 0, DensityFieldDepth - 1);
         }
 
 
@@ -285,26 +285,29 @@ namespace Gaia.SceneGraph.GameEntities
         {
             Texture2D heightMap = Texture2D.FromFile(GFX.Device, filename);
 
-            DensityFieldSize = heightMap.Width;
+            DensityFieldWidth = heightMap.Width;
+            DensityFieldDepth = DensityFieldWidth;
+            DensityFieldHeight = ((DensityFieldWidth-1) / 8) + 1;
+
             InitializeFieldData();
 
             Color[] heightData = new Color[heightMap.Width * heightMap.Height];
             heightMap.GetData<Color>(heightData);
 
-            int densityFieldSqr = DensityFieldSize * DensityFieldSize;
+            int densityFieldSqr = DensityFieldWidth * DensityFieldHeight;
 
-            for (int z = 0; z < DensityFieldSize; z++)
+            for (int z = 0; z < DensityFieldDepth; z++)
             {
                 int zStride = z * densityFieldSqr;
-                for (int x = 0; x < DensityFieldSize; x++)
+                for (int x = 0; x < DensityFieldWidth; x++)
                 {
-                    float h = (float)heightData[x + z * DensityFieldSize].R / 255.0f;
-                    int hEnd = (int)MathHelper.Clamp(h * DensityFieldSize, 1, DensityFieldSize - 1);
+                    float h = (float)heightData[x + z * DensityFieldWidth].R / 255.0f;
+                    int hEnd = (int)MathHelper.Clamp(h * DensityFieldHeight, 1, DensityFieldHeight - 1);
                     int hInterpStart = hEnd - (int)((float)hEnd * .3f);
                     float invRange = 1.0f / (float)(hEnd - hInterpStart);
                     for (int y = 0; y < hEnd; y++)
                     {
-                        int yStride = y * DensityFieldSize;
+                        int yStride = y * DensityFieldWidth;
 
                         DensityField[x + yStride + zStride] = 255;
                         //if (y > hInterpStart)
@@ -320,7 +323,10 @@ namespace Gaia.SceneGraph.GameEntities
 
         void GenerateFloatingIslands(int size)
         {
-            DensityFieldSize = size + 1;
+            DensityFieldWidth = size + 1;
+            DensityFieldHeight = DensityFieldWidth;
+            DensityFieldDepth = DensityFieldWidth;
+
             InitializeFieldData();
             
             //Here we generate our noise textures
@@ -344,7 +350,7 @@ namespace Gaia.SceneGraph.GameEntities
             Shader islandShader = ResourceManager.Inst.GetShader("ProceduralIsland");
             islandShader.SetupShader();
 
-            GFX.Device.SetPixelShaderConstant(0, Vector3.One / (float)DensityFieldSize);
+            GFX.Device.SetPixelShaderConstant(0, Vector3.One / new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth));
             //Lets activate our textures
             for (int i = 0; i < noiseTextures.Length; i++)
                 GFX.Device.Textures[i] = noiseTextures[i];
@@ -356,13 +362,13 @@ namespace Gaia.SceneGraph.GameEntities
             
             //Here we setup our render target. 
             //This is used to fetch what is rendered to our screen and store it in a texture.
-            srcTarget = new RenderTarget2D(GFX.Device, DensityFieldSize, DensityFieldSize, 1, GFX.Inst.ByteSurfaceFormat);
+            srcTarget = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldHeight, 1, GFX.Inst.ByteSurfaceFormat);
             DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
             GFX.Device.DepthStencilBuffer = GFX.Inst.dsBufferLarge;
 
-            for (int z = 0; z < DensityFieldSize; z++)
+            for (int z = 0; z < DensityFieldDepth; z++)
             {
-                Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldSize - 1);
+                Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
                 GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
                 
                 GFX.Device.SetRenderTarget(0, srcTarget);
@@ -399,7 +405,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             //In the lines below, we copy the texture data into the density field buffer
             if (GFX.Inst.ByteSurfaceDataType == GFXTextureDataType.BYTE)
-                srcTarget.GetTexture().GetData<byte>(byteField, z * DensityFieldSize * DensityFieldSize, DensityFieldSize * DensityFieldSize);
+                srcTarget.GetTexture().GetData<byte>(byteField, z * DensityFieldWidth * DensityFieldHeight, DensityFieldWidth * DensityFieldHeight);
             else
             {
                 byte[] densityData = new byte[srcTarget.Width * srcTarget.Height];
@@ -410,122 +416,44 @@ namespace Gaia.SceneGraph.GameEntities
                         srcTarget.GetTexture().GetData<Color>(colorData);
                         for (int i = 0; i < colorData.Length; i++)
                             densityData[i] = colorData[i].R;
-                        Array.Copy(densityData, 0, byteField, z * DensityFieldSize * DensityFieldSize, DensityFieldSize * DensityFieldSize);
+                        Array.Copy(densityData, 0, byteField, z * DensityFieldWidth * DensityFieldHeight, DensityFieldWidth * DensityFieldHeight);
                         break;
                     case GFXTextureDataType.HALFSINGLE:
                         HalfSingle[] hsingData = new HalfSingle[densityData.Length];
                         srcTarget.GetTexture().GetData<HalfSingle>(hsingData);
                         for (int i = 0; i < hsingData.Length; i++)
                             densityData[i] = (byte)(hsingData[i].ToSingle() * 255.0f);
-                        Array.Copy(densityData, 0, byteField, z * DensityFieldSize * DensityFieldSize, DensityFieldSize * DensityFieldSize);
+                        Array.Copy(densityData, 0, byteField, z * DensityFieldWidth * DensityFieldHeight, DensityFieldWidth * DensityFieldHeight);
                         break;
                     case GFXTextureDataType.SINGLE:
                         float[] singData = new float[densityData.Length];
                         srcTarget.GetTexture().GetData<float>(singData);
                         for (int i = 0; i < singData.Length; i++)
                             densityData[i] = (byte)(singData[i] * 255.0f);
-                        Array.Copy(densityData, 0, byteField, z * DensityFieldSize * DensityFieldSize, DensityFieldSize * DensityFieldSize);
+                        Array.Copy(densityData, 0, byteField, z * DensityFieldWidth * DensityFieldHeight, DensityFieldWidth * DensityFieldHeight);
                         break;
                 }
             }
         }
 
-        void EvaluateDensity(int axis, int sign)
-        {
-            ResourceManager.Inst.GetShader("ProceduralIsland").SetupShader();
-            GFX.Device.SetPixelShaderConstant(0, Vector3.One / (float)DensityFieldSize);
-            //Lets activate our textures
-            for (int i = 0; i < noiseTextures.Length; i++)
-                GFX.Device.Textures[i] = noiseTextures[i];
-
-            GFX.Device.SetVertexShaderConstant(1, textureMatrix);
-
-            GFX.Device.SetPixelShaderConstant(1, Vector4.One * axis);
-
-            DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
-            GFX.Device.DepthStencilBuffer = GFX.Inst.dsBufferLarge;
-
-            int zOrg = (sign < 0) ? 0 : DensityFieldSize - VoxelGridSize;
-            byte[] densityDataTemp = new byte[DensityFieldSize * DensityFieldSize * VoxelGridSize];
-            for (int z = 0; z < VoxelGridSize; z++)
-            {
-                Vector4 depth = Vector4.One * (float)(zOrg+z) / (float)(DensityFieldSize - 1);
-                GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
-
-                GFX.Device.SetRenderTarget(0, srcTarget);
-                GFX.Device.Clear(Color.TransparentBlack);
-
-                GFXPrimitives.Quad.Render();
-
-                GFX.Device.SetRenderTarget(0, null);
-
-                //Now the copying stage.
-                ExtractDensityTextureData(ref densityDataTemp, z);
-            }
-            GFX.Device.DepthStencilBuffer = dsOld;
-
-            int stride = (axis==0)?1:((axis==1)?DensityFieldSize:DensityFieldSize*DensityFieldSize);
-            int offset = (sign < 0) ? 0 : (DensityFieldSize - VoxelGridSize - 1) * stride;
-            switch (axis)
-            {
-                case 0:
-                    for (int i = 0; i < DensityFieldSize; i++)
-                    {
-                        for (int j = 0; j < DensityFieldSize; j++)
-                        {
-                            int index = i + j * DensityFieldSize;
-                            int indexDField = index + offset;
-                            for(int k = 0; k < VoxelGridSize; k++)
-                            {
-                                DensityField[indexDField] = densityDataTemp[index];
-                                index+=DensityFieldSize*DensityFieldSize;
-                                indexDField++;
-                            }
-                        }
-                    }
-                    break;
-                case 1:
-                    for (int i = 0; i < DensityFieldSize; i++)
-                    {
-                        for (int j = 0; j < DensityFieldSize; j++)
-                        {
-                            int index = i + j * DensityFieldSize;
-                            int indexDField = i + j * DensityFieldSize * DensityFieldSize + offset;
-                            for (int k = 0; k < VoxelGridSize; k++)
-                            {
-                                DensityField[indexDField] = densityDataTemp[index];
-                                index += DensityFieldSize*DensityFieldSize;
-                                indexDField += DensityFieldSize;
-                            }
-                        }
-                    }
-                    break;
-                case 2:
-                    
-                    Array.Copy(densityDataTemp, 0, DensityField, offset, densityDataTemp.Length);
-                    break;
-            }
-            
-        }
-
         void InitializeFieldData()
         {
-            int fieldSize = DensityFieldSize * DensityFieldSize * DensityFieldSize;
+            int fieldSize = DensityFieldWidth * DensityFieldHeight * DensityFieldDepth;
             DensityField = new byte[fieldSize];
         }
 
         void InitializeSurfaceIndices()
         {
-            surfaceIndices = new int[DensityFieldSize * DensityFieldSize];
-            for (int z = 0; z < DensityFieldSize; z++)
+            surfaceIndices = new int[DensityFieldWidth * DensityFieldDepth];
+            for (int z = 0; z < DensityFieldDepth; z++)
             {
-                int zOff = z * DensityFieldSize * DensityFieldSize;
-                for (int x = 0; x < DensityFieldSize; x++)
+                int zOff = z * DensityFieldWidth * DensityFieldHeight;
+                for (int x = 0; x < DensityFieldWidth; x++)
                 {
-                    int indexSurface = x + z * DensityFieldSize;
-                    for (int y = DensityFieldSize - 1; y >= 0; y--)
+                    int indexSurface = x + z * DensityFieldWidth;
+                    for (int y = DensityFieldHeight - 1; y >= 0; y--)
                     {
-                        int index = x + y * DensityFieldSize + zOff;
+                        int index = x + y * DensityFieldWidth + zOff;
                         surfaceIndices[indexSurface] = -1;
                         if (DensityField[index] >= IsoValue)
                         {
@@ -539,19 +467,21 @@ namespace Gaia.SceneGraph.GameEntities
 
         void InitializeVoxels()
         {
-            int voxelCount = (DensityFieldSize - 1) / VoxelGridSize;
-            Voxels = new VoxelGeometry[voxelCount * voxelCount * voxelCount];
+            int voxelCountX = (DensityFieldWidth - 1) / VoxelGridSize;
+            int voxelCountY = (DensityFieldHeight - 1) / VoxelGridSize;
+            int voxelCountZ = (DensityFieldDepth - 1) / VoxelGridSize;
+            Voxels = new VoxelGeometry[voxelCountX * voxelCountY * voxelCountZ];
             VoxelBounds = new BoundingBox[Voxels.Length];
-            float ratio = 2.0f * (float)VoxelGridSize / (float)(DensityFieldSize - 1);
+            Vector3 ratio = Vector3.One * 2.0f * (float)VoxelGridSize / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
 
-            for (int z = 0; z < voxelCount; z++)
+            for (int z = 0; z < voxelCountZ; z++)
             {
-                int zOff = voxelCount * voxelCount * z;
-                for (int y = 0; y < voxelCount; y++)
+                int zOff = voxelCountX * voxelCountY * z;
+                for (int y = 0; y < voxelCountY; y++)
                 {
-                    int yOff = voxelCount * y;
+                    int yOff = voxelCountX * y;
 
-                    for (int x = 0; x < voxelCount; x++)
+                    for (int x = 0; x < voxelCountX; x++)
                     {
                         int idx = x + yOff + zOff;
 
@@ -561,7 +491,8 @@ namespace Gaia.SceneGraph.GameEntities
 
                         Voxels[idx] = new VoxelGeometry();
                         Voxels[idx].renderElement.Transform = new Matrix[1] { Transformation.GetTransform() };
-                        Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, 2.0f / (float)(DensityFieldSize - 1), this.Transformation.GetTransform());
+                        Vector3 geometryRatio = 2.0f*Vector3.One / new Vector3(DensityFieldWidth-1,DensityFieldHeight-1,DensityFieldDepth-1);
+                        Voxels[idx].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, x * VoxelGridSize, y * VoxelGridSize, z * VoxelGridSize, geometryRatio, this.Transformation.GetTransform());
                     }
                 }
             }
@@ -603,109 +534,9 @@ namespace Gaia.SceneGraph.GameEntities
             */
         }
 
-        void MoveTerrainsAlongAxis(int axis, int sign)
-        {
-            int shifter = (axis == 0) ? 1 : ((axis == 1) ? VoxelGridSize : VoxelGridSize * VoxelGridSize);
-
-            for (int i = 0; i < VoxelGridSize; i++)
-            {
-                for (int j = 0; j < VoxelGridSize; j++)
-                {
-                    int idx = (axis == 0) ? VoxelGridSize * (j + i * VoxelGridSize)
-                        : (axis == 1) ? j + i * VoxelGridSize * VoxelGridSize : (j + i * VoxelGridSize);
-
-                    int index = ((sign < 0) ? (VoxelGridSize - 1) : 0) * shifter + idx;
-                    int xOrg=0, yOrg=0, zOrg=0;
-                    switch (axis)
-                    {
-                        case 0:
-                            yOrg = i;
-                            zOrg = j;
-                            xOrg = ((sign < 0) ? (VoxelGridSize - 1) : 0);
-                            break;
-                        case 1:
-                            xOrg = i;
-                            zOrg = j;
-                            yOrg = ((sign < 0) ? (VoxelGridSize - 1) : 0);
-                            break;
-                        case 2:
-                            yOrg = i;
-                            xOrg = j;
-                            zOrg = ((sign < 0) ? (VoxelGridSize - 1) : 0);
-                            break;
-                    }
-                    float ratio = 2.0f * (float)VoxelGridSize / (float)(DensityFieldSize - 1);
-                    Voxels[index].GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, VoxelGridSize, VoxelGridSize, VoxelGridSize, xOrg, yOrg, zOrg, ratio, this.Transformation.GetTransform());
-
-                    for (int k = 0; k < VoxelGridSize - 1; k++)
-                    {
-                        int indexA = (k + 1) * shifter + idx;
-                        int indexB = k * shifter + idx;
-                        if (sign > 0)
-                        {
-                            indexB = indexA;
-                            indexA = k * shifter + idx;
-                        }
-                        Voxels[indexA] = Voxels[indexB];
-                    }
-                }
-            }
-        }
-
-        void HandleCameraMotion()
-        {
-            Vector3 delta = (scene.MainCamera.GetPosition() - Transformation.GetPosition())/(TerrainSize*VoxelGridSize);
-            int[] diffs = new int[3] { (int)Math.Floor(delta.X), (int)Math.Floor(delta.Y), (int)Math.Floor(delta.Z) };
-
-            for (int i = 0; i < diffs.Length; i++)
-            {
-                while (diffs[i] != 0)
-                {
-                    int sign = (diffs[i] < 0)?-1:1;
-                    int origin = (sign < 0)?DensityFieldSize-1:0;
-                    int shifter = (i == 0) ? 1 : ((i == 1) ? DensityFieldSize : DensityFieldSize * DensityFieldSize);
-                    for (int k = 0; k < DensityFieldSize; k++)
-                    {
-                        for (int j = 0; j < DensityFieldSize; j++)
-                        {
-                            int idx = (i == 0) ? DensityFieldSize * (j + k * DensityFieldSize)
-                                   : (i == 1) ? j + k * DensityFieldSize * DensityFieldSize : (j + k * DensityFieldSize);
-
-                            for (int l = 0; l < DensityFieldSize-VoxelGridSize; l++)
-                            {
-                                int pos = origin + l * sign;
-                                int indexA = (pos+sign) * shifter + idx;
-                                int indexB = pos * shifter + idx;
-                                if (sign > 0)
-                                {
-                                    indexB = indexA;
-                                    indexA = pos * shifter + idx;
-                                }
-                                DensityField[indexA] = DensityField[indexB];
-                            }
-                        }
-                    }
-
-                    Vector3 transVec = (i == 0) ? Vector3.Right : ((i == 1) ? Vector3.Up : Vector3.Forward);
-                    if (sign < 0)
-                        transVec *= -1;
-
-                    float textureScale = 2.0f * ((float)VoxelGridSize / (float)DensityFieldSize) - 1.0f;
-                    float worldScale = textureScale * TerrainSize;
-
-                    textureMatrix.Translation = textureMatrix.Translation + transVec * textureScale;
-                    Transformation.SetPosition(Transformation.GetPosition() + transVec * worldScale);
-                    EvaluateDensity(i, sign);
-
-                    MoveTerrainsAlongAxis(i, sign);
-                    diffs[i] -= sign;
-                }
-            }
-        }
-
         public override BoundingBox GetWorldSpaceBoundsAtPoint(Vector3 point, int size)
         {
-            Vector3 offset = TerrainSize * Vector3.One * (float)size / (float)(DensityFieldSize-1);
+            Vector3 offset = TerrainSize * Vector3.One * (float)size / new Vector3(DensityFieldWidth - 1, DensityFieldHeight - 1, DensityFieldDepth - 1);
             BoundingBox bounds = new BoundingBox();
             bounds.Min = point - offset;
             bounds.Max = point + offset;
@@ -716,27 +547,27 @@ namespace Gaia.SceneGraph.GameEntities
         public override void CarveTerrainAtPoint(Vector3 point, int size, int isoBrush)
         {
             List<VoxelGeometry> UpdateVoxels = new List<VoxelGeometry>();
-            int DensityFieldSqr = DensityFieldSize * DensityFieldSize;
+            int DensityFieldSqr = DensityFieldWidth * DensityFieldHeight;
 
             Vector3 pointObjSpace = Vector3.Transform(point, Transformation.GetObjectSpace()) * 0.5f + Vector3.One * 0.5f;
-            pointObjSpace *= DensityFieldSize;
+            pointObjSpace *= new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth);
 
-            int xW = (int)MathHelper.Clamp(pointObjSpace.X, 0, DensityFieldSize - 1);
-            int yW = (int)MathHelper.Clamp(pointObjSpace.Y, 0, DensityFieldSize - 1);
-            int zW = (int)MathHelper.Clamp(pointObjSpace.Z, 0, DensityFieldSize - 1);
+            int xW = (int)MathHelper.Clamp(pointObjSpace.X, 0, DensityFieldWidth - 1);
+            int yW = (int)MathHelper.Clamp(pointObjSpace.Y, 0, DensityFieldHeight - 1);
+            int zW = (int)MathHelper.Clamp(pointObjSpace.Z, 0, DensityFieldDepth - 1);
 
             List<int[]> UpdateShifts = new List<int[]>();
-            int xStart = (int)MathHelper.Clamp(xW - size, 0, DensityFieldSize - 1);
-            int xEnd = (int)MathHelper.Clamp(xW + size, 0, DensityFieldSize - 1);
-            int yStart = (int)MathHelper.Clamp(yW - size, 0, DensityFieldSize - 1);
-            int yEnd = (int)MathHelper.Clamp(yW + size, 0, DensityFieldSize - 1);
-            int zStart = (int)MathHelper.Clamp(zW - size, 0, DensityFieldSize - 1);
-            int zEnd = (int)MathHelper.Clamp(zW + size, 0, DensityFieldSize - 1);
+            int xStart = (int)MathHelper.Clamp(xW - size, 0, DensityFieldWidth - 1);
+            int xEnd = (int)MathHelper.Clamp(xW + size, 0, DensityFieldWidth - 1);
+            int yStart = (int)MathHelper.Clamp(yW - size, 0, DensityFieldHeight - 1);
+            int yEnd = (int)MathHelper.Clamp(yW + size, 0, DensityFieldHeight - 1);
+            int zStart = (int)MathHelper.Clamp(zW - size, 0, DensityFieldDepth - 1);
+            int zEnd = (int)MathHelper.Clamp(zW + size, 0, DensityFieldDepth - 1);
             for (int x = xStart; x < xEnd; x++)
             {
                 for (int y = yStart; y < yEnd; y++)
                 {
-                    int yStride = y * DensityFieldSize;
+                    int yStride = y * DensityFieldWidth;
                     for (int z = zStart; z < zEnd; z++)
                     {
                         int idx = x + yStride + z * DensityFieldSqr;
@@ -747,8 +578,10 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-            int voxelCount = (DensityFieldSize - 1) / VoxelGridSize;
-            int voxelCountSqr = voxelCount * voxelCount;
+            int voxelCountX = (DensityFieldWidth - 1) / VoxelGridSize;
+            int voxelCountY = (DensityFieldHeight - 1) / VoxelGridSize;
+            int voxelCountZ = (DensityFieldDepth - 1) / VoxelGridSize;
+            int voxelCountSqr = voxelCountX * voxelCountY;
 
             int bSizeP1 = (int)(size * 1.5f);
             int bSizeN1 = bSizeP1;// brushSize * 2;
@@ -758,10 +591,10 @@ namespace Gaia.SceneGraph.GameEntities
                 {
                     for (int z = zW - bSizeN1; z < zW + bSizeP1; z++)
                     {
-                        int xV = (int)MathHelper.Clamp((float)voxelCount * ((float)x / (float)DensityFieldSize), 0, voxelCount - 1);
-                        int yV = (int)MathHelper.Clamp((float)voxelCount * ((float)y / (float)DensityFieldSize), 0, voxelCount - 1);
-                        int zV = (int)MathHelper.Clamp((float)voxelCount * ((float)z / (float)DensityFieldSize), 0, voxelCount - 1);
-                        int voxelIndex = xV + yV * voxelCount + zV * voxelCountSqr;
+                        int xV = (int)MathHelper.Clamp((float)voxelCountX * ((float)x / (float)DensityFieldWidth), 0, voxelCountX - 1);
+                        int yV = (int)MathHelper.Clamp((float)voxelCountY * ((float)y / (float)DensityFieldHeight), 0, voxelCountY - 1);
+                        int zV = (int)MathHelper.Clamp((float)voxelCountZ * ((float)z / (float)DensityFieldDepth), 0, voxelCountZ - 1);
+                        int voxelIndex = xV + yV * voxelCountX + zV * voxelCountSqr;
                         if (!UpdateVoxels.Contains(Voxels[voxelIndex]))
                         {
                             UpdateVoxels.Add(Voxels[voxelIndex]);
@@ -771,10 +604,10 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-            float ratio = 2.0f * (float)VoxelGridSize / (float)(DensityFieldSize - 1);
+            Vector3 ratio = 2.0f * (float)VoxelGridSize * Vector3.One / new Vector3(DensityFieldWidth - 1, DensityFieldHeight - 1, DensityFieldDepth - 1);
             for (int i = 0; i < UpdateVoxels.Count; i++)
             {
-                UpdateVoxels[i].GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, VoxelGridSize, VoxelGridSize, VoxelGridSize, UpdateShifts[i][0] * VoxelGridSize, UpdateShifts[i][1] * VoxelGridSize, UpdateShifts[i][2] * VoxelGridSize, 2.0f / (float)(DensityFieldSize - 1), this.Transformation.GetTransform());
+                UpdateVoxels[i].GenerateGeometry(ref DensityField, IsoValue, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, VoxelGridSize, VoxelGridSize, VoxelGridSize, UpdateShifts[i][0] * VoxelGridSize, UpdateShifts[i][1] * VoxelGridSize, UpdateShifts[i][2] * VoxelGridSize, ratio, this.Transformation.GetTransform());
             }
         }
 

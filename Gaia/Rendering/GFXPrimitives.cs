@@ -439,7 +439,8 @@ namespace Gaia.Rendering
             }
 
             Geometry = new VoxelGeometry();
-            Geometry.GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, DensityFieldSize - 1, DensityFieldSize - 1, DensityFieldSize - 1, 0, 0, 0, 2.0f / (float)(DensityFieldSize - 1), Matrix.Identity);
+            Vector3 ratio = 2.0f * Vector3.One / (float)(DensityFieldSize - 1);
+            Geometry.GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, DensityFieldSize - 1, DensityFieldSize - 1, DensityFieldSize - 1, 0, 0, 0, ratio, Matrix.Identity);
         }
     }
 
@@ -488,7 +489,8 @@ namespace Gaia.Rendering
             }
 
             Geometry = new VoxelGeometry();
-            Geometry.GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, DensityFieldSize - 1, DensityFieldSize - 1, DensityFieldSize - 1, 0, 0, 0, 2.0f / (float)(DensityFieldSize - 1), Matrix.Identity);
+            Vector3 ratio = Vector3.One * 2.0f / (float)(DensityFieldSize - 1);
+            Geometry.GenerateGeometry(ref DensityField, IsoValue, DensityFieldSize, DensityFieldSize, DensityFieldSize, DensityFieldSize - 1, DensityFieldSize - 1, DensityFieldSize - 1, 0, 0, 0, ratio, Matrix.Identity);
         }
     }
 

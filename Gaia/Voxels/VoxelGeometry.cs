@@ -129,7 +129,7 @@ namespace Gaia.Voxels
             return 0;
         }
 
-        public void GenerateGeometry(ref byte[] DensityField, byte IsoValue, int DensityFieldWidth, int DensityFieldHeight, int DensityFieldDepth, int Width, int Height, int Depth, int xOrigin, int yOrigin, int zOrigin, float ratio, Matrix transform)
+        public void GenerateGeometry(ref byte[] DensityField, byte IsoValue, int DensityFieldWidth, int DensityFieldHeight, int DensityFieldDepth, int Width, int Height, int Depth, int xOrigin, int yOrigin, int zOrigin, Vector3 ratio, Matrix transform)
         {
             DestroyBuffers();
             
