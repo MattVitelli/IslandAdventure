@@ -232,7 +232,8 @@ namespace Gaia.SceneGraph
 
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
-            MainTerrain = new TerrainVoxel();
+            MainTerrain = new TerrainVoxel("Textures/HeightMap2.dds");
+            
             //MainTerrain = new TerrainHeightmap("Textures/HeightMap/heightmap.png", 0, 0.5f);
             MainPlayer = new Camera();
             

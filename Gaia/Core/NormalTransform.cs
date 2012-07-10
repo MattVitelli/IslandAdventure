@@ -9,6 +9,7 @@ namespace Gaia.Core
     {
         Vector3 normal;
         bool normalConform;
+        float theta = MathHelper.PiOver4;
  
         public NormalTransform()
         {
@@ -22,6 +23,17 @@ namespace Gaia.Core
             normalConform = true;
         }
 
+        public void SetAngle(float angle)
+        {
+            theta = angle;
+            dirtyMatrix = true;
+        }
+
+        public float GetAngle()
+        {
+            return theta;
+        }
+
         protected override void UpdateMatrix()
         {
             base.UpdateMatrix();
@@ -30,9 +42,14 @@ namespace Gaia.Core
             {
                 worldMatrix = Matrix.Identity;
                 worldMatrix.Up = normal;
-                worldMatrix.Right = Vector3.Normalize(new Vector3(normal.Z, normal.X, normal.Y));
-                worldMatrix.Forward = Vector3.Normalize(Vector3.Cross(worldMatrix.Up, worldMatrix.Right));
-                worldMatrix = Matrix.CreateScale(scale) * worldMatrix;
+
+                Vector3 fwd = new Vector3(normal.Z, normal.X, normal.Y);
+                fwd = Vector3.Normalize(fwd - Vector3.Dot(fwd, normal) * normal);
+                Vector3 right = Vector3.Cross(fwd, normal);
+
+                worldMatrix.Right = right;// Vector3.Normalize(new Vector3(normal.Z, normal.X, normal.Y));
+                worldMatrix.Forward = fwd;// Vector3.Normalize(Vector3.Cross(worldMatrix.Up, worldMatrix.Right));
+                worldMatrix = Matrix.CreateScale(scale) * Matrix.CreateRotationY(theta) * worldMatrix;
                 worldMatrix.Translation = position;
             }
             

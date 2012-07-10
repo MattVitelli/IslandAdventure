@@ -23,7 +23,9 @@ namespace Gaia.SceneGraph.GameEntities
                                     //so if a voxel had an element of 127 or lower, that would be empty space. A value higher than 127
                                     //Would be solid space.
         public int VoxelGridSize = 16; //Defines how many voxel geometries we have (used to balance performance)
-        public int DensityFieldSize = 129; //Density field is (2^n)+1 in size. (e.g. 65, 129, 257, 513) 
+        public int DensityFieldWidth = 129; //Density field is (2^n)+1 in size. (e.g. 65, 129, 257, 513) 
+        public int DensityFieldHeight;
+        public int DensityFieldDepth;
 
         VoxelGeometry[] Voxels;
         BoundingBox[] VoxelBounds;
@@ -61,6 +63,15 @@ namespace Gaia.SceneGraph.GameEntities
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
         }
 
+        public TerrainVoxel(string filename)
+        {
+            Transformation.SetScale(Vector3.One * TerrainSize);
+            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
+
+            GenerateTerrainFromFile(filename);
+            terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
+        }
+
         void AssembleTextureAtlas(Texture3D target, Texture2D[] srcTextures, int textureSize, int mipCount)
         {
             Shader imageShader = ResourceManager.Inst.GetShader("Generic2D");
@@ -86,7 +97,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             target.GenerateMipMaps(TextureFilter.Linear);
         }
-
+        /*
         public override bool GetYPos(ref Vector3 pos, out Vector3 normal, float minY, float maxY)
         {
 
@@ -97,11 +108,11 @@ namespace Gaia.SceneGraph.GameEntities
             minPos = minPos * 0.5f + Vector3.One * 0.5f;
             maxPos = maxPos * 0.5f + Vector3.One * 0.5f;
 
-            int yBegin = (int)MathHelper.Clamp(minPos.Y * DensityFieldSize, 0, DensityFieldSize - 1);
-            int yEnd = (int)MathHelper.Clamp(maxPos.Y * DensityFieldSize, 0, DensityFieldSize - 1);
-            int xCrd = (int)MathHelper.Clamp(DensityFieldSize * minPos.X, 0, DensityFieldSize - 1);
-            int zCrd = (int)MathHelper.Clamp(DensityFieldSize * minPos.Z, 0, DensityFieldSize - 1);
-            int baseIndex = xCrd + zCrd * DensityFieldSize * DensityFieldSize;
+            int yBegin = (int)MathHelper.Clamp(minPos.Y * DensityFieldHeight, 0, DensityFieldHeight - 1);
+            int yEnd = (int)MathHelper.Clamp(maxPos.Y * DensityFieldHeight, 0, DensityFieldHeight - 1);
+            int xCrd = (int)MathHelper.Clamp(DensityFieldWidth * minPos.X, 0, DensityFieldWidth - 1);
+            int zCrd = (int)MathHelper.Clamp(DensityFieldDepth * minPos.Z, 0, DensityFieldDepth - 1);
+            int baseIndex = xCrd + zCrd * DensityFieldWidth * DensityFieldHeight;
 
             int yIndex = yBegin;
             bool freeSpaceFound = false;
@@ -126,7 +137,7 @@ namespace Gaia.SceneGraph.GameEntities
             normal = ComputeNormal(xCrd, yIndex, zCrd);
             return (freeSpaceFound && solidSpaceFound);
         }
-
+        */
         public override void GenerateRandomTransform(Random rand, out Vector3 position, out Vector3 normal)
         {
             int bestY = -1;
@@ -134,13 +145,13 @@ namespace Gaia.SceneGraph.GameEntities
             int randZ = 0;
             while(bestY == -1)
             {
-                randX = rand.Next(DensityFieldSize-1);
-                randZ = rand.Next(DensityFieldSize-1);
-                int index = randX + randZ * DensityFieldSize * DensityFieldSize;
+                randX = rand.Next(DensityFieldWidth-1);
+                randZ = rand.Next(DensityFieldDepth-1);
+                int index = randX + randZ * DensityFieldWidth * DensityFieldHeight;
                 
-                for (int i = 0; i < DensityFieldSize; i++)
+                for (int i = 0; i < DensityFieldHeight; i++)
                 {
-                    if(DensityField[index+i*DensityFieldSize] <= IsoValue)
+                    if(DensityField[index+i*DensityFieldWidth] <= IsoValue)
                     {
                         bestY = i;
                         break;
@@ -148,7 +159,7 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-            Vector3 vec = new Vector3((float)randX, (float)bestY, (float)randZ) / (float)(DensityFieldSize - 1);
+            Vector3 vec = new Vector3((float)randX, (float)bestY, (float)randZ) / new Vector3(DensityFieldWidth - 1, DensityFieldHeight - 1, DensityFieldDepth - 1);
             position = Vector3.Transform(2.0f * vec - Vector3.One, Transformation.GetTransform());
             normal = ComputeNormal(randX, bestY, randZ);
         }
@@ -167,15 +178,17 @@ namespace Gaia.SceneGraph.GameEntities
                 Console.WriteLine("This is very bad");
             }
 
-            int voxelCount = (DensityFieldSize - 1) / VoxelGridSize;
+            int voxelCountX = (DensityFieldWidth - 1) / VoxelGridSize;
+            int voxelCountY = (DensityFieldHeight - 1) / VoxelGridSize;
+            int voxelCountZ = (DensityFieldDepth - 1) / VoxelGridSize;
 
-            int voxelMinX = (int)MathHelper.Clamp((invRegionMin.X + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
-            int voxelMinY = (int)MathHelper.Clamp((invRegionMin.Y + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
-            int voxelMinZ = (int)MathHelper.Clamp((invRegionMin.Z + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
+            int voxelMinX = (int)MathHelper.Clamp((invRegionMin.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
+            int voxelMinY = (int)MathHelper.Clamp((invRegionMin.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
+            int voxelMinZ = (int)MathHelper.Clamp((invRegionMin.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
 
-            int voxelMaxX = (int)MathHelper.Clamp((invRegionMax.X + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
-            int voxelMaxY = (int)MathHelper.Clamp((invRegionMax.Y + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
-            int voxelMaxZ = (int)MathHelper.Clamp((invRegionMax.Z + 1.0f) * 0.5f * voxelCount, 0, voxelCount - 1);
+            int voxelMaxX = (int)MathHelper.Clamp((invRegionMax.X + 1.0f) * 0.5f * voxelCountX, 0, voxelCountX - 1);
+            int voxelMaxY = (int)MathHelper.Clamp((invRegionMax.Y + 1.0f) * 0.5f * voxelCountY, 0, voxelCountY - 1);
+            int voxelMaxZ = (int)MathHelper.Clamp((invRegionMax.Z + 1.0f) * 0.5f * voxelCountZ, 0, voxelCountZ - 1);
 
             availableTriangles = new List<TriangleGraph>();
 
@@ -265,6 +278,44 @@ namespace Gaia.SceneGraph.GameEntities
             xPos = (int)MathHelper.Clamp(posObjSpace.X, 0, DensityFieldSize - 1);
             yPos = (int)MathHelper.Clamp(posObjSpace.Y, 0, DensityFieldSize - 1);
             zPos = (int)MathHelper.Clamp(posObjSpace.Z, 0, DensityFieldSize - 1);
+        }
+
+
+        void GenerateTerrainFromFile(string filename)
+        {
+            Texture2D heightMap = Texture2D.FromFile(GFX.Device, filename);
+
+            DensityFieldSize = heightMap.Width;
+            InitializeFieldData();
+
+            Color[] heightData = new Color[heightMap.Width * heightMap.Height];
+            heightMap.GetData<Color>(heightData);
+
+            int densityFieldSqr = DensityFieldSize * DensityFieldSize;
+
+            for (int z = 0; z < DensityFieldSize; z++)
+            {
+                int zStride = z * densityFieldSqr;
+                for (int x = 0; x < DensityFieldSize; x++)
+                {
+                    float h = (float)heightData[x + z * DensityFieldSize].R / 255.0f;
+                    int hEnd = (int)MathHelper.Clamp(h * DensityFieldSize, 1, DensityFieldSize - 1);
+                    int hInterpStart = hEnd - (int)((float)hEnd * .3f);
+                    float invRange = 1.0f / (float)(hEnd - hInterpStart);
+                    for (int y = 0; y < hEnd; y++)
+                    {
+                        int yStride = y * DensityFieldSize;
+
+                        DensityField[x + yStride + zStride] = 255;
+                        //if (y > hInterpStart)
+                        //    DensityField[x + yStride + zStride] = (byte)MathHelper.Lerp(255, 0, (float)(y - hInterpStart) * invRange);
+                    }
+                }
+            }
+
+            InitializeSurfaceIndices();
+
+            InitializeVoxels();
         }
 
         void GenerateFloatingIslands(int size)
