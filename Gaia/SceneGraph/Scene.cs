@@ -246,7 +246,7 @@ namespace Gaia.SceneGraph
             Entities["TestTree"].Transformation.SetPosition(Vector3.Forward * 10.0f);
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
-            
+            /*
             for (int i = 0; i < 250; i++)
             {
                 Model tree = new Model("Palm01");
@@ -259,8 +259,8 @@ namespace Gaia.SceneGraph
                 transform.SetPosition(pos);
                 AddEntity("Tree", tree);
             }
-            
-            //Entities.Add("Grass", new GrassPlacement());
+            */
+            Entities.Add("Grass", new GrassPlacement());
             /*
             Model testGeom = new Model("test_level");
             testGeom.Transformation.SetPosition(Vector3.Up*20.0f);

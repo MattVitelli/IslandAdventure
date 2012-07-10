@@ -374,9 +374,9 @@ namespace Gaia.Voxels
 
             //Take the negative gradient (hence the x0-x1)
             Vector3 nrm = new Vector3(DensityField[idx + x0] - DensityField[idx + x1], DensityField[idx + y0] - DensityField[idx + y1], DensityField[idx + z0] - DensityField[idx + z1]);
-
-            double magSqr = nrm.X * nrm.X + nrm.Y * nrm.Y + nrm.Z * nrm.Z + 0.0001; //Regularization constant (very important!)
-            double invMag = 1.0 / Math.Sqrt(magSqr);
+            //nrm = Vector3.Clamp(nrm, -Vector3.One * 15, Vector3.One * 15); 
+            double magSqr = nrm.X * nrm.X + nrm.Y * nrm.Y + nrm.Z * nrm.Z; //Regularization constant (very important!)
+            double invMag = 1.0 / (Math.Sqrt(magSqr)+0.001);
             nrm.X = (float)(nrm.X * invMag);
             nrm.Y = (float)(nrm.Y * invMag);
             nrm.Z = (float)(nrm.Z * invMag);

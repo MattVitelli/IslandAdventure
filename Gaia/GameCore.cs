@@ -237,7 +237,7 @@ namespace Gaia
             }
 
             mainScene.Update();
-            playerScreen.OnUpdate(Time.GameTime.DT);
+            //playerScreen.OnUpdate(Time.GameTime.DT);
 
             base.Update(gameTime);
         }
