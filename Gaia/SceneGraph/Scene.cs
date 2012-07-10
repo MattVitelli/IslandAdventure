@@ -260,7 +260,10 @@ namespace Gaia.SceneGraph
                 AddEntity("Tree", tree);
             }
             */
-            Entities.Add("Grass", new GrassPlacement());
+
+            //Entities.Add("Grass", new GrassPlacement());
+
+
             /*
             Model testGeom = new Model("test_level");
             testGeom.Transformation.SetPosition(Vector3.Up*20.0f);

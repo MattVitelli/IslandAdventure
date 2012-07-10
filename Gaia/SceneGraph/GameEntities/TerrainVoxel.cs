@@ -65,8 +65,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         public TerrainVoxel(string filename)
         {
-            Transformation.SetScale(new Vector3(1, 0.125f, 1) * TerrainSize);
-            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
+            Transformation.SetScale(new Vector3(1, 0.25f, 1) * TerrainSize);
+            Transformation.SetPosition(Vector3.Up * TerrainSize * 0.0725f);
 
             GenerateTerrainFromFile(filename);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
@@ -287,44 +287,18 @@ namespace Gaia.SceneGraph.GameEntities
 
             DensityFieldWidth = heightMap.Width;
             DensityFieldDepth = DensityFieldWidth;
-            DensityFieldHeight = ((DensityFieldWidth-1) / 8) + 1;
+            DensityFieldHeight = ((DensityFieldWidth-1) / 4) + 1;
 
             InitializeFieldData();
-            /*
-            Color[] heightData = new Color[heightMap.Width * heightMap.Height];
-            heightMap.GetData<Color>(heightData);
 
-            int densityFieldSqr = DensityFieldWidth * DensityFieldHeight;
-
-            for (int z = 0; z < DensityFieldDepth; z++)
-            {
-                int zStride = z * densityFieldSqr;
-                for (int x = 0; x < DensityFieldWidth; x++)
-                {
-                    float h = (float)heightData[x + z * DensityFieldWidth].R / 255.0f;
-                    int hEnd = (int)MathHelper.Clamp(h * DensityFieldHeight, 1, DensityFieldHeight - 1);
-                    int hInterpStart = hEnd - (int)((float)hEnd * .1f);
-                    float invRange = 1.0f / (float)(hEnd - hInterpStart);
-                    for (int y = 0; y < hEnd; y++)
-                    {
-                        int yStride = y * DensityFieldWidth;
-
-                        DensityField[x + yStride + zStride] = 255;
-                        //if (y > hInterpStart)
-                        //    DensityField[x + yStride + zStride] = (byte)MathHelper.Lerp(255, IsoValue+16, (float)(y - hInterpStart) * invRange);
-                    }
-                    
-                }
-            }*/
-
-            PerformBlur(heightMap, 1);
+            PerformBlur(heightMap);
 
             InitializeSurfaceIndices();
 
             InitializeVoxels();
         }
 
-        void PerformBlur(Texture2D heightmap, int iterations)
+        void PerformBlur(Texture2D heightmap)
         {
             Shader blurShader = ResourceManager.Inst.GetShader("VoxelBlur3x3x3");
 
@@ -345,7 +319,7 @@ namespace Gaia.SceneGraph.GameEntities
             GFX.Device.RenderState.DepthBufferWriteEnable = false;
 
             //Here we generate our noise textures
-            int nSize = 16;
+            int nSize = 32;
             noiseTextures = new Texture3D[4];
             float[] noiseData = new float[nSize * nSize * nSize];
             Random rand = new Random();
@@ -365,33 +339,29 @@ namespace Gaia.SceneGraph.GameEntities
             for (int i = 0; i < noiseTextures.Length; i++)
                 GFX.Device.Textures[i+1] = noiseTextures[i];
 
-            //for (int i = 0; i < iterations; i++)
+            //CopyDensityTextureData(ref DensityField, currDensityField);
+            GFX.Device.Textures[0] = heightmap;
+            for (int z = 0; z < DensityFieldDepth; z++)
             {
-                //CopyDensityTextureData(ref DensityField, currDensityField);
-                GFX.Device.Textures[0] = heightmap;
-                for (int z = 0; z < DensityFieldDepth; z++)
-                {
-                    Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
-                    GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
+                Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
+                GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
 
-                    GFX.Device.SetRenderTarget(0, srcTarget);
-                    //GFX.Device.Clear(Color.TransparentBlack);
+                GFX.Device.SetRenderTarget(0, srcTarget);
+                //GFX.Device.Clear(Color.TransparentBlack);
 
-                    GFXPrimitives.Quad.Render();
+                GFXPrimitives.Quad.Render();
 
-                    GFX.Device.SetRenderTarget(0, null);
+                GFX.Device.SetRenderTarget(0, null);
 
-                    //Now the copying stage.
-                    ExtractDensityTextureData(ref DensityField, z);
+                //Now the copying stage.
+                ExtractDensityTextureData(ref DensityField, z);
 
-                }
-                GFX.Device.Textures[0] = null;
             }
+            GFX.Device.Textures[0] = null;
+
             GFX.Device.DepthStencilBuffer = dsOld;
             GFX.Device.RenderState.DepthBufferEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = true;
-
-            currDensityField.Dispose();
         }
 
         void GenerateFloatingIslands(int size)
