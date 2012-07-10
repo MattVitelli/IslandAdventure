@@ -55,7 +55,7 @@ namespace Gaia.SceneGraph.GameEntities
 
                         if (!grassTransforms.ContainsKey(idx))
                         {
-                            FoliageCluster cluster = new FoliageCluster(40, 2, 4);
+                            FoliageCluster cluster = new FoliageCluster(20, 2, 4);
                             for (int i = 0; i < grassMaterials.Length; i++)
                                 cluster.AddMaterial(grassMaterials[i]);
                             cluster.SetDimensions(new Vector3(2.75f, 1.45f, 2.75f), new Vector3(5.35f, 3.5f, 5.35f));

@@ -107,14 +107,21 @@ namespace Gaia.SceneGraph.GameEntities
             Vector3 randScale = Vector3.Lerp(minScale, maxScale, (float)RandomHelper.RandomGen.NextDouble());
             cluster.Bounds.Min = Vector3.One * float.PositiveInfinity;
             cluster.Bounds.Max = Vector3.One * float.NegativeInfinity;
+            Vector3 fwd = new Vector3(surfaceNormal.Z, surfaceNormal.X, surfaceNormal.Y);
+            fwd = Vector3.Normalize(fwd - Vector3.Dot(fwd, surfaceNormal) * surfaceNormal);
+            Vector3 right = Vector3.Cross(fwd, surfaceNormal);
             for (int i = 0; i < cluster.Transform.Length; i++)
             {
                 float randAngle = MathHelper.TwoPi * (float)RandomHelper.RandomGen.NextDouble();
                 Matrix orientation = Matrix.Identity;
                 
                 orientation.Up = surfaceNormal;
-                orientation *= Matrix.CreateFromAxisAngle(surfaceNormal, randAngle);
-                cluster.Transform[i] = Matrix.CreateScale(randScale) * orientation;
+
+
+                orientation.Right = right;// Vector3.Normalize(new Vector3(normal.Z, normal.X, normal.Y));
+                orientation.Forward = fwd;// Vector3.Normalize(Vector3.Cross(worldMatrix.Up, worldMatrix.Right));
+                //orientation *= Matrix.CreateFromAxisAngle(surfaceNormal, randAngle);
+                cluster.Transform[i] = Matrix.CreateScale(randScale) * Matrix.CreateRotationY(randAngle) * orientation;
                 /*
                 cluster.Transform[i] = Matrix.CreateRotationY(randAngle);
                 cluster.Transform[i].Up = surfaceNormal;
