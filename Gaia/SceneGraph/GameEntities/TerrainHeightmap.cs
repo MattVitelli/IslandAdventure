@@ -21,6 +21,9 @@ namespace Gaia.SceneGraph.GameEntities
         BoundingBox[] patchBounds;
 
         Material terrainMaterial;
+        RenderTarget2D[] blendMaps;
+        TerrainClimate climate;
+        TerrainRenderElement[] patchElements;
 
         string heightmapFileName;
 
@@ -43,11 +46,6 @@ namespace Gaia.SceneGraph.GameEntities
         public int GetDepth()
         {
             return depth;
-        }
-
-        public TerrainHeightmap()
-        {
-            terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainHMMaterial");
         }
 
         public override void OnSave(System.Xml.XmlWriter writer)
@@ -76,7 +74,6 @@ namespace Gaia.SceneGraph.GameEntities
         public TerrainHeightmap(string heightmapFilename, float minHeight, float maxHeight)
         {
             this.heightmapFileName = heightmapFilename;
-            terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainHMMaterial");
             heightRange = new Vector2(minHeight, maxHeight);
             LoadHeightFromTexture();
             BuildTerrain();
@@ -112,6 +109,7 @@ namespace Gaia.SceneGraph.GameEntities
             {
                 patchBounds[i] = MathUtils.TransformBounds(patches[i].GetBounds(), transform);
                 patches[i].BuildTriangleGraph(transform);
+                patches[i].GetRenderElement().Transform = new Matrix[1] { transform };
             }
 
             CreateCollisionMesh();
@@ -435,8 +433,19 @@ namespace Gaia.SceneGraph.GameEntities
             width = tex.Width;
             depth = tex.Height;
             heightValues = new float[width * depth];
+            
             byte[] data = new byte[width * depth];
-            tex.GetData<byte>(data);
+            if (tex.Format != SurfaceFormat.Luminance8)
+            {
+                Color[] dataColor = new Color[tex.Width * tex.Height];
+                tex.GetData<Color>(dataColor, 0, dataColor.Length);
+                for (int i = 0; i < dataColor.Length; i++)
+                    data[i] = dataColor[i].R;
+            } 
+            else 
+            {
+                tex.GetData<byte>(data);
+            }
             float scale = (heightRange.Y - heightRange.X);
             for (int x = 0; x < width; x++)
             {
@@ -446,16 +455,156 @@ namespace Gaia.SceneGraph.GameEntities
                     heightValues[index] = (float)((data[index] / 255.0f) * scale) + heightRange.X;
                 }
             }
+
+
+            BuildBlendMap(tex);
+        }
+
+        void NormalizeBlendWeights()
+        {
+            Color[] blendWeightData = new Color[width*depth];
+            float[] blendMapWeights = new float[blendWeightData.Length];
+            for (int i = 0; i < blendMapWeights.Length; i++)
+                blendMapWeights[i] = 0;
+
+            for (int i = 0; i < blendMaps.Length; i++)
+            {
+                blendMaps[i].GetTexture().GetData<Color>(blendWeightData);
+                for (int j = 0; j < blendWeightData.Length; j++)
+                {
+                    Vector4 currWeights = blendWeightData[j].ToVector4();
+                    blendMapWeights[j] += Vector4.Dot(Vector4.One, currWeights);
+                }
+            }
+
+            for (int i = 0; i < blendMapWeights.Length; i++)
+                blendMapWeights[i] = 1.0f / blendMapWeights[i];
+
+            Texture2D texture = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Color);
+
+            Shader basic2DShader = ResourceManager.Inst.GetShader("Generic2D");
+            basic2DShader.SetupShader();
+            for (int i = 0; i < blendMaps.Length; i++)
+            {
+                blendMaps[i].GetTexture().GetData<Color>(blendWeightData);
+
+                for (int j = 0; j < blendWeightData.Length; j++)
+                    blendWeightData[j] = new Color(blendWeightData[j].ToVector4() * blendMapWeights[j]);
+                texture.SetData<Color>(blendWeightData);
+
+                blendMaps[i].GetTexture().Save("Test" + i + "_BEFORE.dds", ImageFileFormat.Dds);
+
+                GFX.Device.SetRenderTarget(0, blendMaps[i]);
+                GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(width, depth));
+                GFX.Device.Textures[0] = texture;
+                GFXPrimitives.Quad.Render();
+                GFX.Device.SetRenderTarget(0, null);
+                GFX.Device.Textures[0] = null;
+
+                blendMaps[i].GetTexture().Save("Test" + i + "_AFTER.dds", ImageFileFormat.Dds);
+                
+            }
+            /*
+            Texture2D tempBlendTexture = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Color);
+            
+            Texture2D weightTexture = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Single);
+            weightTexture.SetData<float>(blendMapWeights);
+
+            weightTexture.Save("Test.dds", ImageFileFormat.Dds);
+
+            Shader normalizeWeightsShader = ResourceManager.Inst.GetShader("FixBlendWeights");
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(width, depth));
+            GFX.Device.SamplerStates[0].MagFilter = TextureFilter.None;
+            GFX.Device.SamplerStates[0].MinFilter = TextureFilter.None;
+            GFX.Device.SamplerStates[0].MipFilter = TextureFilter.None;
+
+            GFX.Device.Textures[0] = weightTexture;
+            for (int i = 0; i < blendMaps.Length; i++)
+            {
+                blendMaps[i].GetTexture().GetData<Color>(blendWeightData);
+                tempBlendTexture.SetData<Color>(blendWeightData);
+                GFX.Device.Textures[1] = tempBlendTexture; ;
+                blendMaps[i].GetTexture().Save("Test" + i + "_BEFORE.dds", ImageFileFormat.Dds);
+                GFX.Device.SetRenderTarget(0, blendMaps[i]);
+                GFXPrimitives.Quad.Render();
+                GFX.Device.SetRenderTarget(0, null);
+                blendMaps[i].GetTexture().Save("Test" + i + "_AFTER.dds", ImageFileFormat.Dds);
+                GFX.Device.Textures[1] = null;
+            }
+            */
+        }
+
+        void BuildBlendMap(Texture2D heightmap)
+        {
+            climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
+            //Texture2D heightmap = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Single);
+            //heightmap.SetData<float>(heightValues);
+
+            Shader gradientShader = ResourceManager.Inst.GetShader("GradientHeightmap");
+            gradientShader.SetupShader();
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(width, depth));
+            GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(width, depth));
+            GFX.Device.Textures[0] = heightmap;
+
+            RenderTarget2D rtGradient = new RenderTarget2D(GFX.Device, width, depth, 1, SurfaceFormat.Single);
+            GFX.Device.SetRenderTarget(0, rtGradient);
+            GFXPrimitives.Quad.Render();
+            GFX.Device.SetRenderTarget(0, null);
+            GFX.Device.Textures[0] = rtGradient.GetTexture();
+            RenderTarget2D rtCurvature = new RenderTarget2D(GFX.Device, width, depth, 1, SurfaceFormat.Single);
+            GFX.Device.SetRenderTarget(0, rtCurvature);
+            GFXPrimitives.Quad.Render();
+            GFX.Device.SetRenderTarget(0, null);
+
+
+            Shader blendShader = ResourceManager.Inst.GetShader("BlendHeightmap");
+            blendShader.SetupShader();
+            GFX.Device.Textures[0] = heightmap;
+            GFX.Device.Textures[1] = rtGradient.GetTexture();
+            GFX.Device.Textures[2] = rtCurvature.GetTexture();
+
+            Vector4[] climateParams = new Vector4[4];
+            Vector4[] climateParams2 = new Vector4[4];
+
+            int numBlendMapsNeeded = climate.blendZones.Length / 4;
+            blendMaps = new RenderTarget2D[numBlendMapsNeeded];
+
+            for (int i = 0; i < numBlendMapsNeeded; i++)
+            {
+                int offset = i * 4;
+                for (int j = 0; j < 4; j++)
+                {
+                    int climateIndex = j + offset;
+                    climateParams[j] = new Vector4(climate.heightCoeffs[climateIndex], climate.gradientCoeffs[climateIndex], climate.curvatureCoeffs[climateIndex], climate.baseScores[climateIndex]);
+                    climateParams2[j] = Vector4.One * climate.blendZones[climateIndex];
+                }
+
+                GFX.Device.SetPixelShaderConstant(0, climateParams);
+                GFX.Device.SetPixelShaderConstant(4, climateParams2);
+
+                blendMaps[i] = new RenderTarget2D(GFX.Device, width, depth, 1, SurfaceFormat.Color);
+                GFX.Device.SetRenderTarget(0, blendMaps[i]);
+                GFXPrimitives.Quad.Render();
+                GFX.Device.SetRenderTarget(0, null);
+            }
+
+            NormalizeBlendWeights();
         }
 
         void BuildTerrain()
         {
+            terrainMaterial = ResourceManager.Inst.GetMaterial("NULL");
+
             numPatchesX = width / patchWidth;
             numPatchesZ = depth / patchWidth;
             // Create the terrain patches.
             patches = new TerrainPatch[numPatchesX * numPatchesZ];
             patchBounds = new BoundingBox[patches.Length];
+            patchElements = new TerrainRenderElement[patches.Length];
             
+            Texture2D[] blendTextures = new Texture2D[blendMaps.Length];
+            for(int i = 0; i < blendTextures.Length; i++)
+                blendTextures[i] = blendMaps[i].GetTexture();
             for (int x = 0; x < numPatchesX; x++)
             {
                 for (int z = 0; z < numPatchesZ; z++)
@@ -463,6 +612,9 @@ namespace Gaia.SceneGraph.GameEntities
                     int index = x + z * numPatchesX;
                     patches[index] = new TerrainPatch(this, patchWidth, patchWidth, x * (patchWidth - 1), z * (patchWidth - 1));
                     patchBounds[index] = MathUtils.TransformBounds(patches[index].GetBounds(), Transformation.GetTransform());
+                    patchElements[index] = new TerrainRenderElement();
+                    patchElements[index].BlendMaps = blendTextures;
+                    patchElements[index].Elements = new RenderElement[1] { patches[index].GetRenderElement() };
                 }
             }
         }
@@ -474,9 +626,16 @@ namespace Gaia.SceneGraph.GameEntities
             {
                 if (frustum.Contains(patches[i].GetBounds()) != ContainmentType.Disjoint)
                 {
-                    RenderElement element = patches[i].GetRenderElement();
-                    element.Transform = new Matrix[1] { this.Transformation.GetTransform() };
-                    view.AddElement(terrainMaterial, element);
+                    if(view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
+                    {
+                        TerrainElementManager terrMgr = (TerrainElementManager)view.GetRenderElementManager(RenderPass.Terrain);
+                        terrMgr.AddElement(climate, patchElements[i]);
+                    }
+                    else
+                    {
+                        RenderElement element = patches[i].GetRenderElement();
+                        view.AddElement(terrainMaterial, element);
+                    }
                 }
             }
             base.OnRender(view);

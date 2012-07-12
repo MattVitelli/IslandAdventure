@@ -50,8 +50,11 @@ namespace Gaia.SceneGraph.GameEntities
         Texture3D[] noiseTextures;
 
         Texture3D blendTexture;
-        Texture3D textureAtlasColor;
-        Texture3D textureAtlasNormal;
+        Texture3D blendIDTexture;
+        int blendMapWidth = 32;
+        int blendMapHeight = 32;
+        int blendMapDepth = 32;
+        TerrainClimateVoxels climate;
 
         public int[] surfaceIndices;
 
@@ -61,6 +64,7 @@ namespace Gaia.SceneGraph.GameEntities
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
             GenerateFloatingIslands(128);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
+            climate = ResourceManager.Inst.GetTerrainClimateVoxels("TestTerrain");
         }
 
         public TerrainVoxel(string filename)
@@ -68,8 +72,10 @@ namespace Gaia.SceneGraph.GameEntities
             Transformation.SetScale(new Vector3(1, 0.25f, 1) * TerrainSize);
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.0725f);
 
-            GenerateTerrainFromFile(filename);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
+            climate = ResourceManager.Inst.GetTerrainClimateVoxels("TestTerrain");
+
+            GenerateTerrainFromFile(filename);
         }
 
         void AssembleTextureAtlas(Texture3D target, Texture2D[] srcTextures, int textureSize, int mipCount)
@@ -293,9 +299,122 @@ namespace Gaia.SceneGraph.GameEntities
 
             PerformBlur(heightMap);
 
+            InitializeClimateMap();
+
+            InitializeMaterial();
+
             InitializeSurfaceIndices();
 
             InitializeVoxels();
+        }
+
+        void InitializeMaterial()
+        {
+            terrainMaterial.SetTexture(0, climate.BaseMapAtlas);
+            terrainMaterial.SetTexture(1, climate.NormalMapAtlas);
+            TextureResource blendTex = new TextureResource();
+            blendTex.SetTexture(TextureResourceType.Texture3D, blendTexture);
+            TextureResource blendIDTex = new TextureResource();
+            blendIDTex.SetTexture(TextureResourceType.Texture3D, blendIDTexture);
+            terrainMaterial.SetTexture(2, blendTex);
+            terrainMaterial.SetTexture(3, blendIDTex);
+            terrainMaterial.kAmbient = climate.GetInverseResolution();
+            terrainMaterial.kDiffuse = Vector3.One / new Vector3(blendMapWidth, blendMapHeight, blendMapDepth);
+        }
+
+        void InitializeClimateMap()
+        {
+
+            Texture3D densityFieldTexture = new Texture3D(GFX.Device, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, 1, TextureUsage.None, GFX.Inst.ByteSurfaceFormat);
+            CopyDensityTextureData(ref DensityField, densityFieldTexture);
+
+            GFX.Device.Textures[0] = densityFieldTexture;
+
+            RenderTarget2D rtClimateMap = new RenderTarget2D(GFX.Device, blendMapWidth, blendMapHeight, 1, SurfaceFormat.Color);
+            RenderTarget2D rtIDMap = new RenderTarget2D(GFX.Device, blendMapWidth, blendMapHeight, 1, SurfaceFormat.Color);
+
+            int stride = blendMapWidth * blendMapHeight;
+            Color[] colorData = new Color[stride * blendMapDepth];
+            Color[] blendIDData = new Color[stride * blendMapDepth];
+            
+            Vector4[] climateParams = new Vector4[4];
+            Vector4[] climateParams2 = new Vector4[4];
+
+            for (int i = 0; i < climate.heightCoeffs.Length; i++)
+            {
+                climateParams[i] = new Vector4(climate.heightCoeffs[i], climate.gradientCoeffs[i], climate.curvatureCoeffs[i], climate.baseScores[i]);
+                climateParams2[i] = Vector4.One * climate.blendZones[i];
+            }
+
+
+
+            GFX.Device.SetPixelShaderConstant(0, Vector3.One / new Vector3(DensityFieldWidth, DensityFieldHeight, DensityFieldDepth));
+
+
+
+            RenderTarget2D rtGradientMap = new RenderTarget2D(GFX.Device, DensityFieldWidth, DensityFieldHeight, 1, SurfaceFormat.Single);
+            int gradStride = DensityFieldWidth * DensityFieldHeight;
+            float[] gradientValues = new float[gradStride * DensityFieldDepth];
+            Texture3D gradientTexture = new Texture3D(GFX.Device, DensityFieldWidth, DensityFieldHeight, DensityFieldDepth, 1, TextureUsage.None, SurfaceFormat.Single);
+            Shader gradientShader = ResourceManager.Inst.GetShader("GradientShader");
+            gradientShader.SetupShader();
+
+            for (int z = 0; z < DensityFieldDepth; z++)
+            {
+                Vector4 depth = Vector4.One * (float)z / (float)(DensityFieldDepth - 1);
+                GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
+
+                GFX.Device.SetRenderTarget(0, rtGradientMap);
+
+                GFXPrimitives.Quad.Render();
+
+                GFX.Device.SetRenderTarget(0, null);
+
+                rtGradientMap.GetTexture().GetData<float>(gradientValues, z * gradStride, gradStride);
+            }
+            gradientTexture.SetData<float>(gradientValues);
+
+
+
+
+            GFX.Device.Textures[1] = gradientTexture;
+            GFX.Device.SetPixelShaderConstant(1, climateParams);
+            GFX.Device.SetPixelShaderConstant(5, climateParams2);
+
+
+            Shader climateShader = ResourceManager.Inst.GetShader("ClimateShader");
+            climateShader.SetupShader();
+
+            for (int z = 0; z < blendMapDepth; z++)
+            {
+                Vector4 depth = Vector4.One * (float)z / (float)(blendMapDepth - 1);
+                GFX.Device.SetVertexShaderConstant(0, depth); //Set our current depth
+
+                GFX.Device.SetRenderTarget(0, rtClimateMap);
+                GFX.Device.SetRenderTarget(1, rtIDMap);
+
+                GFXPrimitives.Quad.Render();
+
+                GFX.Device.SetRenderTarget(0, null);
+                GFX.Device.SetRenderTarget(1, null);
+
+                rtClimateMap.GetTexture().GetData<Color>(colorData, z * stride, stride);
+                rtIDMap.GetTexture().GetData<Color>(blendIDData, z * stride, stride);
+            }
+            GFX.Device.Textures[0] = null;
+            GFX.Device.Textures[1] = null;
+
+            gradientTexture.Dispose();
+
+            blendTexture = new Texture3D(GFX.Device, blendMapWidth, blendMapHeight, blendMapDepth, 1, TextureUsage.None, SurfaceFormat.Color);
+            blendTexture.SetData<Color>(colorData);
+
+            blendIDTexture = new Texture3D(GFX.Device, blendMapWidth, blendMapHeight, blendMapDepth, 1, TextureUsage.None, SurfaceFormat.Color);
+            blendIDTexture.SetData<Color>(blendIDData);
+
+            blendTexture.Save("TestClimateMap.dds", ImageFileFormat.Dds);
+            blendIDTexture.Save("TestClimateMapID.dds", ImageFileFormat.Dds);
+
         }
 
         void PerformBlur(Texture2D heightmap)
@@ -426,19 +545,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             }
             GFX.Device.DepthStencilBuffer = dsOld;
-            /*
-            for(int z = 0; z < DensityFieldSize; z++)
-            {
-                for(int y = 0; y < DensityFieldSize; y++)
-                {
-                    for (int x = 0; x < DensityFieldSize; x++)
-                    {
-                        int index = x + (y + z * DensityFieldSize) * DensityFieldSize;
-                        DensityField[index] = (byte) ((y < 10) ? 255 : 0);
-                    }
-                }
-            }
-            */
+
             InitializeSurfaceIndices();
 
             InitializeVoxels();
@@ -596,23 +703,6 @@ namespace Gaia.SceneGraph.GameEntities
             CollisionSkin collision = new CollisionSkin(null);
             collision.AddPrimitive(collisionMesh, (int)MaterialTable.MaterialID.NotBouncyRough);
             scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision);
-
-            /*
-            Octree tree = new Octree(vertices, indices);
-            TriangleMeshShape collisionMesh = new TriangleMeshShape(tree);
-            */
-            /*
-            KDTreeTriangles tree = new KDTreeTriangles(indices, vertices);
-            TriangleMeshShapeKD collisionMesh = new TriangleMeshShapeKD(tree);
-            
-            collisionMesh.FlipNormals = true;
-            Jitter.Dynamics.RigidBody body = new Jitter.Dynamics.RigidBody(collisionMesh);
-            body.IsStatic = true;
-            body.Material.KineticFriction = 0.3f;
-            body.Material.StaticFriction = 0.6f;
-            body.Material.Restitution = 0.13f;
-            scene.GetPhysicsEngine().AddBody(body);
-            */
         }
 
         public override BoundingBox GetWorldSpaceBoundsAtPoint(Vector3 point, int size)
@@ -700,10 +790,10 @@ namespace Gaia.SceneGraph.GameEntities
 
             for (int i = 0; i < Voxels.Length; i++)
             {
-                /*
+                
                 if (Voxels[i].CanRender)
                     GenerateCollisionMesh(Voxels[i]);
-                */
+                
             }
         }
 

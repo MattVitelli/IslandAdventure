@@ -26,6 +26,23 @@ namespace Gaia.Resources
         TextureCube textureCube = null;
         TextureResourceType textureType = TextureResourceType.Texture2D;
 
+        public void SetTexture(TextureResourceType type, Texture texture)
+        {
+            textureType = type;
+            switch (textureType)
+            {
+                case TextureResourceType.Texture3D:
+                    texture3D = (Texture3D)texture;
+                    break;
+                case TextureResourceType.TextureCube:
+                    textureCube = (TextureCube)texture;
+                    break;
+                default:
+                    texture2D = (Texture2D)texture;
+                    break;
+            }
+        }
+
         public TextureResourceType GetTextureType() { return textureType; }
 
         public Texture GetTexture()

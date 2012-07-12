@@ -18,6 +18,7 @@ namespace Gaia.Rendering
     public enum RenderPass
     {
         Shadows = 0,
+        Terrain,
         Scene,
         TransparentGBuffer,
         TransparentColor,
@@ -29,6 +30,7 @@ namespace Gaia.Rendering
         PostProcess,
         FirstPersonPrepass,
         FirstPerson,
+        Foliage,
         Decal,
         UI,
         Count

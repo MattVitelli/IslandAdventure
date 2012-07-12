@@ -34,6 +34,22 @@ namespace Gaia.Rendering.RenderViews
             : base(RenderViewType.MAIN, view, projection, position, nearPlane, farPlane)
         {
             this.scene = scene;
+            InitializeTextures();
+            InitializeRenderViews();
+            InitializeManagers();
+        }
+        ~MainRenderView()
+        {
+            DestroyRenderViews();
+        }
+
+        public Texture2D GetSkyTexture()
+        {
+            return ((SkyElementManager)ElementManagers[RenderPass.Sky]).GetTexture();
+        }
+
+        void InitializeManagers()
+        {
             this.ElementManagers.Add(RenderPass.Sky, new SkyElementManager(this));
             this.ElementManagers.Add(RenderPass.Scene, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Emissive, new SceneElementManager(this));
@@ -45,17 +61,8 @@ namespace Gaia.Rendering.RenderViews
             this.ElementManagers.Add(RenderPass.FirstPersonPrepass, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.FirstPerson, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Decal, new DecalElementManager(this));
-            InitializeTextures();
-            InitializeRenderViews();
-        }
-        ~MainRenderView()
-        {
-            DestroyRenderViews();
-        }
-
-        public Texture2D GetSkyTexture()
-        {
-            return ((SkyElementManager)ElementManagers[RenderPass.Sky]).GetTexture();
+            this.ElementManagers.Add(RenderPass.Terrain, new TerrainElementManager(this));
+            this.ElementManagers.Add(RenderPass.Foliage, new FoliageElementManager(this));
         }
 
         void InitializeTextures()
@@ -176,13 +183,6 @@ namespace Gaia.Rendering.RenderViews
 
         public override void AddElement(Material material, RenderElement element)
         {
-            if (material.IsFirstPerson)
-            {
-                SceneElementManager fpsPrepass = (SceneElementManager)ElementManagers[RenderPass.FirstPersonPrepass];
-                SceneElementManager fps = (SceneElementManager)ElementManagers[RenderPass.FirstPerson];
-                fpsPrepass.AddElement(material, element);
-                fps.AddElement(material, element);
-            }
             if (material.IsTranslucent)
             {
                 PostProcessElementManager ppMgr = (PostProcessElementManager)ElementManagers[RenderPass.PostProcess];
@@ -196,6 +196,11 @@ namespace Gaia.Rendering.RenderViews
             }
             else
             {
+                if (material.IsFoliage)
+                {
+                    FoliageElementManager mgr = (FoliageElementManager)ElementManagers[RenderPass.Foliage];
+                    mgr.AddElement(material, element);
+                }
                 if(material.IsEmissive)
                 {
                     Material mat = ResourceManager.Inst.GetMaterial(material.EmissiveMaterial);
@@ -218,21 +223,28 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());
 
+            TerrainElementManager terrMgr = (TerrainElementManager)ElementManagers[RenderPass.Terrain];
+
+            terrMgr.PerformBlending();
+
             GFX.Device.SetRenderTarget(0, ColorMap);
             GFX.Device.SetRenderTarget(1, NormalMap);
             GFX.Device.SetRenderTarget(2, DepthMap);
             GFX.Device.SetRenderTarget(3, DataMap);
 
-            GFX.Device.Clear(Color.TransparentBlack);
+            GFX.Device.Clear(Color.TransparentBlack);            
 
+            ElementManagers[RenderPass.Terrain].Render();
             ElementManagers[RenderPass.Scene].Render();
             /*
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjectionLocal());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosLocalShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosLocalShader());
             */
+
             ElementManagers[RenderPass.FirstPersonPrepass].Render();
             ElementManagers[RenderPass.Decal].Render();
+            ElementManagers[RenderPass.Foliage].Render();
             /*
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjection());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
@@ -242,6 +254,8 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetRenderTarget(1, null);
             GFX.Device.SetRenderTarget(2, null);
             GFX.Device.SetRenderTarget(3, null);
+
+            
 
 
             GFX.Device.Textures[0] = NormalMap.GetTexture();

@@ -26,6 +26,7 @@ namespace Gaia.Rendering
         public VertexDeclaration VertexDec;
 
         public bool IsAnimated = false;
+
     }
 
     public abstract class RenderElementManager

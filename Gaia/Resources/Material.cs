@@ -30,14 +30,15 @@ namespace Gaia.Resources
         public bool IsEmissive;
         public string EmissiveMaterial;
         public bool IsFirstPerson { get { return isFirstPerson; } }
+        public bool IsFoliage = false;
 
         float kReflect;
         float kRefract;
         float kIOR;
         float kTrans;
-        Vector3 kAmbient = Vector3.One;
-        Vector3 kDiffuse = Vector3.One;
-        Vector3 kSpecular = Vector3.One;
+        public Vector3 kAmbient = Vector3.One;
+        public Vector3 kDiffuse = Vector3.One;
+        public Vector3 kSpecular = Vector3.One;
         float kSpecularPower = 15;
         float kSpecularCoeff = 1;
         float kRimCoeff = 1;
@@ -82,6 +83,10 @@ namespace Gaia.Resources
                         break;
                     case "emissivematerial":
                         EmissiveMaterial = attrib.Value;
+                        break;
+
+                    case "foliage":
+                        IsFoliage = bool.Parse(attrib.Value);
                         break;
 
                     case "kreflect":
@@ -162,6 +167,17 @@ namespace Gaia.Resources
                     GFX.Device.SamplerStates[i].MaxMipLevel = textures[i].GetTexture().LevelOfDetail;
                 }
             }
+        }
+
+        public void SetTexture(int index, TextureResource texture)
+        {
+            if (index >= 0 && index < textures.Length)
+                textures[index] = texture;
+        }
+
+        public void SetShader(Shader newShader)
+        {
+            this.shader = newShader;
         }
 
         public void SetupMaterial()

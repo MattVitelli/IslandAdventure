@@ -232,9 +232,10 @@ namespace Gaia.SceneGraph
 
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
-            MainTerrain = new TerrainVoxel("Textures/HeightMap2.dds");
+            //MainTerrain = new TerrainVoxel("Textures/HeightMap2.dds");
             
-            //MainTerrain = new TerrainHeightmap("Textures/HeightMap/heightmap.png", 0, 0.5f);
+            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 0.5f);
+            MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 512.0f);
             MainPlayer = new Camera();
             
             Entities.Add("MainCamera", MainPlayer);
@@ -246,10 +247,10 @@ namespace Gaia.SceneGraph
             Entities["TestTree"].Transformation.SetPosition(Vector3.Forward * 10.0f);
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
-            /*
+            
             for (int i = 0; i < 250; i++)
             {
-                Model tree = new Model("Palm01");
+                Model tree = new Model("Cecropia");
                 NormalTransform transform = new NormalTransform();
                 tree.Transformation = transform;
                 Vector3 pos = Vector3.Zero;
@@ -259,7 +260,7 @@ namespace Gaia.SceneGraph
                 transform.SetPosition(pos);
                 AddEntity("Tree", tree);
             }
-            */
+            
 
             //Entities.Add("Grass", new GrassPlacement());
 

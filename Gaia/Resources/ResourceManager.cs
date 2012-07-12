@@ -15,6 +15,8 @@ namespace Gaia.Resources
         Mesh,
         SoundEffect,
         Team,
+        TerrainClimate,
+        TerrainClimateVoxels,
         Count
     }
 
@@ -63,6 +65,12 @@ namespace Gaia.Resources
 
             ResourceTypeDefs[(int)ResourceTypes.Team] = typeof(TeamResource);
             ResourceTypeTokens[(int)ResourceTypes.Team] = "Team";
+
+            ResourceTypeDefs[(int)ResourceTypes.TerrainClimate] = typeof(TerrainClimate);
+            ResourceTypeTokens[(int)ResourceTypes.TerrainClimate] = "TerrainClimate";
+
+            ResourceTypeDefs[(int)ResourceTypes.TerrainClimateVoxels] = typeof(TerrainClimateVoxels);
+            ResourceTypeTokens[(int)ResourceTypes.TerrainClimateVoxels] = "TerrainClimateVoxels";
         }
 
         public void LoadResources()
@@ -142,6 +150,16 @@ namespace Gaia.Resources
         public TeamResource GetTeam(string key)
         {
             return (TeamResource)GetResource(key, ResourceTypes.Team);
+        }
+
+        public TerrainClimate GetTerrainClimate(string key)
+        {
+            return (TerrainClimate)GetResource(key, ResourceTypes.TerrainClimate);
+        }
+
+        public TerrainClimateVoxels GetTerrainClimateVoxels(string key)
+        {
+            return (TerrainClimateVoxels)GetResource(key, ResourceTypes.TerrainClimateVoxels);
         }
     }
 }

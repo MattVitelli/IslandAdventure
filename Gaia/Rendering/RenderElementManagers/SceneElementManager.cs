@@ -13,11 +13,12 @@ namespace Gaia.Rendering
 
         public SceneElementManager(RenderView renderView) : base(renderView) { }
 
-        public void AddElement(Material material, RenderElement element)
+        public virtual void AddElement(Material material, RenderElement element)
         {
             if (!Elements.ContainsKey(material))
                 Elements.Add(material, new Queue<RenderElement>());
             Elements[material].Enqueue(element);
+
         }
 
         protected void DrawElement(RenderElement currElem)

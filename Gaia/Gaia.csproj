@@ -137,6 +137,8 @@
     <Compile Include="Rendering\GFXPrimitives.cs" />
     <Compile Include="Rendering\GFXShaderConstants.cs" />
     <Compile Include="Rendering\GFXVertexDeclarations.cs" />
+    <Compile Include="Rendering\RenderElementManagers\FoliageElementManager.cs" />
+    <Compile Include="Rendering\RenderElementManagers\TerrainElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\DecalElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\GUIElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\PostProcessReflectionsElementManager.cs" />
@@ -153,6 +155,8 @@
     <Compile Include="Rendering\RenderElementManagers\ShadowElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\TransparentElementManager.cs" />
     <Compile Include="Rendering\Simulators\ParticleSimulator.cs" />
+    <Compile Include="Rendering\Simulators\PerlinNoiseSimulator.cs" />
+    <Compile Include="Resources\TerrainClimateVoxels.cs" />
     <Compile Include="Resources\ItemDatablock.cs" />
     <Compile Include="Resources\QuestResource.cs" />
     <Compile Include="Resources\TeamResource.cs" />
@@ -165,9 +169,11 @@
     <Compile Include="Resources\Shader.cs" />
     <Compile Include="Resources\SoundEffect.cs" />
     <Compile Include="Resources\SoundEngine.cs" />
+    <Compile Include="Resources\TerrainClimate.cs" />
     <Compile Include="Resources\TextureResource.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
     <Compile Include="SceneGraph\GameEntities\Cloud.cs" />
+    <Compile Include="SceneGraph\GameEntities\ClutterPlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Decal.cs" />
     <Compile Include="SceneGraph\GameEntities\RoundManager.cs" />
     <Compile Include="SceneGraph\GameEntities\FoliageCluster.cs" />

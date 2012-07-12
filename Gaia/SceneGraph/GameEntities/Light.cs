@@ -175,7 +175,7 @@ namespace Gaia.SceneGraph.GameEntities
                 splitViewport.Height = shadowMapSize;
                 splitViewport.X = i * shadowMapSize;
                 splitViewport.Y = 0;
-                renderViews[i] = new ShadowRenderView(this, splitViewport, i, Matrix.Identity, Matrix.Identity, Vector3.Zero, 0.1f, 1000.0f);
+                renderViews[i] = new ShadowRenderView(this, splitViewport, i, Matrix.Identity, Matrix.Identity, Vector3.Zero, 1.0f, 1000.0f);
             }
         }
 
@@ -266,7 +266,7 @@ namespace Gaia.SceneGraph.GameEntities
             float far = mainCamera.GetFarPlane();
             splitDepths[0] = near;
             splitDepths[GFXShaderConstants.NUM_SPLITS] = far;
-            const float splitConstant = 0.99f;
+            const float splitConstant = 0.999f;
             for (int i = 1; i < splitDepths.Length - 1; i++)
                 splitDepths[i] = splitConstant * near * (float)Math.Pow(far / near, i / N) + (1.0f - splitConstant) * ((near + (i / N)) * (far - near));
 
