@@ -25,6 +25,8 @@ namespace Gaia.SceneGraph.GameEntities
         TerrainClimate climate;
         TerrainRenderElement[] patchElements;
 
+        ClutterPlacement clutter;
+
         string heightmapFileName;
 
         int patchWidth = 16;
@@ -104,6 +106,9 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
 
+            clutter = new ClutterPlacement(this, scene.MainCamera);
+            clutter.PlaceGrass();
+
             Matrix transform = this.Transformation.GetTransform();
             for (int i = 0; i < patches.Length; i++)
             {
@@ -137,8 +142,8 @@ namespace Gaia.SceneGraph.GameEntities
             BoundingBox regionWorld = region;
             region.Min = Vector3.Transform(region.Min, this.Transformation.GetObjectSpace());
             region.Max = Vector3.Transform(region.Max, this.Transformation.GetObjectSpace());
-            region.Min = Vector3.Clamp(region.Min, Vector3.One*-1, Vector3.One);
-            region.Max = Vector3.Clamp(region.Max, Vector3.One*-1, Vector3.One);
+            region.Min = Vector3.Clamp(region.Min, Vector3.One*-1.0f, Vector3.One);
+            region.Max = Vector3.Clamp(region.Max, Vector3.One*-1.0f, Vector3.One);
 
             availableTriangles = null;
 
@@ -147,7 +152,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             float halfWidth = numPatchesX * 0.5f;
             float halfDepth = numPatchesZ * 0.5f;
-            int startX = (int)MathHelper.Clamp((region.Min.X + 1.0f) * halfWidth, 0, numPatchesX-1);
+            int startX = (int)MathHelper.Clamp((region.Min.X + 1.0f) * halfWidth, 0, numPatchesX - 1);
             int startZ = (int)MathHelper.Clamp((region.Min.Z + 1.0f) * halfDepth, 0, numPatchesZ - 1);
             int endX = (int)MathHelper.Clamp((region.Max.X + 1.0f) * halfWidth, 0, numPatchesX - 1);
             int endZ = (int)MathHelper.Clamp((region.Max.Z + 1.0f) * halfDepth, 0, numPatchesZ - 1);
@@ -619,8 +624,15 @@ namespace Gaia.SceneGraph.GameEntities
             }
         }
 
+        public override void OnUpdate()
+        {
+            clutter.OnUpdate();
+            base.OnUpdate();
+        }
+
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
+            clutter.OnRender(view);
             BoundingFrustum frustum = new BoundingFrustum(this.Transformation.GetTransform() * view.GetViewProjection());
             for(int i = 0; i < patches.Length; i++)
             {

@@ -24,7 +24,11 @@ namespace Gaia.Rendering
         public static int PC_LIGHTCOLOR = 11;
         public static int PC_LIGHTPARAMS = 12;
 
-        
+
+        public static int GRASSFALLOFF = 200;
+
+        public static int ALPHACUTOFF = 158;
+
         public static int NUM_SPLITS = 6;
         
         public static int NUM_INSTANCES = 60;
@@ -91,6 +95,8 @@ namespace Gaia.Rendering
                     WriteDefine(wr, "MAX_PARTICLEFORCES", MAX_PARTICLEFORCES);
                     WriteDefine(wr, "NUM_INSTANCES", NUM_INSTANCES); //Instancing
                     WriteDefine(wr, "NUM_SPLITS", NUM_SPLITS); //Cascade shadow maps
+                    WriteDefine(wr, "GRASSFALLOFF", GRASSFALLOFF);
+                    WriteDefine(wr, "ALPHACUTOFF", (float)ALPHACUTOFF / 255.0f);
 
                     WriteCommand(wr, "VC_MODELVIEW", VC_MODELVIEW);
                     WriteCommand(wr, "VC_WORLD", VC_WORLD);

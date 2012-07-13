@@ -243,11 +243,11 @@ namespace Gaia.SceneGraph
             Entities.Add("Light", MainLight);
             Entities.Add("Plane", new Model("Plane"));
             Entities.Add("AmbientLight", new Light(LightType.Ambient, new Vector3(0.15f, 0.35f, 0.55f), Vector3.Zero, false));
-            Entities.Add("TestTree", new Model("Cecropia"));
+            Entities.Add("TestTree", new Model("Palm02"));
             Entities["TestTree"].Transformation.SetPosition(Vector3.Forward * 10.0f);
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
-            
+            /*
             for (int i = 0; i < 250; i++)
             {
                 Model tree = new Model("Cecropia");
@@ -260,7 +260,7 @@ namespace Gaia.SceneGraph
                 transform.SetPosition(pos);
                 AddEntity("Tree", tree);
             }
-            
+            */
 
             //Entities.Add("Grass", new GrassPlacement());
 

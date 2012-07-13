@@ -201,19 +201,20 @@ namespace Gaia.Rendering.RenderViews
                     FoliageElementManager mgr = (FoliageElementManager)ElementManagers[RenderPass.Foliage];
                     mgr.AddElement(material, element);
                 }
-                if(material.IsEmissive)
-                {
-                    Material mat = ResourceManager.Inst.GetMaterial(material.EmissiveMaterial);
-                    if(mat == null)
-                        mat = material;
-                    SceneElementManager glowMgr = (SceneElementManager)ElementManagers[RenderPass.Emissive];
-                    glowMgr.AddElement(mat, element);
-                }
-                else
-                {
-                    SceneElementManager sceneMgr = (SceneElementManager)ElementManagers[RenderPass.Scene];
-                    sceneMgr.AddElement(material, element);
-                }
+                    if (material.IsEmissive)
+                    {
+                        Material mat = ResourceManager.Inst.GetMaterial(material.EmissiveMaterial);
+                        if (mat == null)
+                            mat = material;
+                        SceneElementManager glowMgr = (SceneElementManager)ElementManagers[RenderPass.Emissive];
+                        glowMgr.AddElement(mat, element);
+                    }
+                    else
+                    {
+                        SceneElementManager sceneMgr = (SceneElementManager)ElementManagers[RenderPass.Scene];
+                        sceneMgr.AddElement(material, element);
+                    }
+                
             }
         }
 
@@ -244,19 +245,19 @@ namespace Gaia.Rendering.RenderViews
 
             ElementManagers[RenderPass.FirstPersonPrepass].Render();
             ElementManagers[RenderPass.Decal].Render();
-            ElementManagers[RenderPass.Foliage].Render();
+            
             /*
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjection());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());
             */
-            GFX.Device.SetRenderTarget(0, null);
             GFX.Device.SetRenderTarget(1, null);
             GFX.Device.SetRenderTarget(2, null);
             GFX.Device.SetRenderTarget(3, null);
 
-            
-
+            ElementManagers[RenderPass.Foliage].Render();
+            //FoliageElementManager foliageMgr = (FoliageElementManager)ElementManagers[RenderPass.Foliage];
+            GFX.Device.SetRenderTarget(0, null);
 
             GFX.Device.Textures[0] = NormalMap.GetTexture();
             GFX.Device.Textures[1] = DepthMap.GetTexture();

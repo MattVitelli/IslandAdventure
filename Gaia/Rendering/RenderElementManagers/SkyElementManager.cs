@@ -45,7 +45,7 @@ namespace Gaia.Rendering
 
             nightTexture = ResourceManager.Inst.GetTexture("Textures/Sky/StarrySky.dds");
 
-            skyTexture = new RenderTarget2D(GFX.Device, 64, 64, 1, SurfaceFormat.Color);
+            skyTexture = new RenderTarget2D(GFX.Device, 32, 32, 1, SurfaceFormat.Color);
         }
 
         public Texture2D GetTexture()

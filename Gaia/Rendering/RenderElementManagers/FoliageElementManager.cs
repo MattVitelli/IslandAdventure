@@ -52,13 +52,14 @@ namespace Gaia.Rendering
 
         public override void Render()
         {
+            /*
             GFX.Device.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
             GFX.Device.RenderState.DepthBufferEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = true;
             GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;
             GFX.Device.RenderState.AlphaTestEnable = true;
-            GFX.Device.RenderState.AlphaFunction = CompareFunction.Greater;
-            GFX.Device.RenderState.ReferenceAlpha = 245;
+            GFX.Device.RenderState.AlphaFunction = CompareFunction.GreaterEqual;
+            GFX.Device.RenderState.ReferenceAlpha = 235;
             
             for (int i = 0; i < Elements.Keys.Count; i++)
             {
@@ -75,10 +76,11 @@ namespace Gaia.Rendering
                 }
                 
             }
-
+            */
+            GFX.Device.RenderState.AlphaTestEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = false;
             GFX.Device.RenderState.AlphaFunction = CompareFunction.LessEqual;
-            GFX.Device.RenderState.ReferenceAlpha = 245;
+            GFX.Device.RenderState.ReferenceAlpha = GFXShaderConstants.ALPHACUTOFF;
             GFX.Device.RenderState.AlphaBlendEnable = true;
             GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
             GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;

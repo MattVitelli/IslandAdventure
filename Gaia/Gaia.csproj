@@ -183,7 +183,6 @@
     <Compile Include="SceneGraph\GameEntities\Model.cs" />
     <Compile Include="SceneGraph\GameEntities\ParticleEmitter.cs" />
     <Compile Include="SceneGraph\Entity.cs" />
-    <Compile Include="SceneGraph\GameEntities\ProceduralGrass.cs" />
     <Compile Include="SceneGraph\GameEntities\Sky.cs" />
     <Compile Include="SceneGraph\GameEntities\Sunlight.cs" />
     <Compile Include="SceneGraph\GameEntities\Player.cs" />
