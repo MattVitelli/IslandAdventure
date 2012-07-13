@@ -27,6 +27,10 @@ namespace Gaia.SceneGraph.GameEntities
 
         ClutterPlacement clutter;
 
+
+        Texture2D NormalTangentTexure;
+        public TextureResource NormalTangentMap;
+
         string heightmapFileName;
 
         int patchWidth = 16;
@@ -40,6 +44,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         CollisionSkin collision;
 
+        BoundingFrustum frustum = new BoundingFrustum(Matrix.Identity);
+
         public int GetWidth()
         {
             return width;
@@ -48,6 +54,11 @@ namespace Gaia.SceneGraph.GameEntities
         public int GetDepth()
         {
             return depth;
+        }
+
+        public TerrainClimate GetClimate()
+        {
+            return climate;
         }
 
         public override void OnSave(System.Xml.XmlWriter writer)
@@ -81,6 +92,14 @@ namespace Gaia.SceneGraph.GameEntities
             BuildTerrain();
         }
 
+        public Texture2D[] GetBlendMaps()
+        {
+            Texture2D[] blendTextures = new Texture2D[blendMaps.Length];
+            for(int i = 0; i < blendMaps.Length; i++)
+                blendTextures[i] = blendMaps[i].GetTexture();
+            return blendTextures;
+        }
+
         void CreateCollisionMesh()
         {
             collision = new CollisionSkin(null);
@@ -107,7 +126,6 @@ namespace Gaia.SceneGraph.GameEntities
             base.OnAdd(scene);
 
             clutter = new ClutterPlacement(this, scene.MainCamera);
-            clutter.PlaceGrass();
 
             Matrix transform = this.Transformation.GetTransform();
             for (int i = 0; i < patches.Length; i++)
@@ -461,8 +479,30 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-
             BuildBlendMap(tex);
+
+            BuildNormalTangentMap();
+        }
+
+        void BuildNormalTangentMap()
+        {
+            NormalTangentTexure = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Vector4);
+
+            Vector4[] normTanData = new Vector4[width * depth];
+
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < depth; j++)
+                {
+                    Vector3 normal = Vector3.Right;
+                    ComputeVertexNormal(i, j, out normal);
+                    normTanData[i + j * width] = new Vector4(normal, 1.0f);
+                }
+            }
+
+            NormalTangentTexure.SetData<Vector4>(normTanData);
+            NormalTangentMap = new TextureResource();
+            NormalTangentMap.SetTexture(TextureResourceType.Texture2D, NormalTangentTexure);
         }
 
         void NormalizeBlendWeights()
@@ -633,7 +673,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             clutter.OnRender(view);
-            BoundingFrustum frustum = new BoundingFrustum(this.Transformation.GetTransform() * view.GetViewProjection());
+            frustum.Matrix = this.Transformation.GetTransform() * view.GetViewProjection();
             for(int i = 0; i < patches.Length; i++)
             {
                 if (frustum.Contains(patches[i].GetBounds()) != ContainmentType.Disjoint)

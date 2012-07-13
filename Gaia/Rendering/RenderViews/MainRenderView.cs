@@ -256,7 +256,6 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetRenderTarget(3, null);
 
             ElementManagers[RenderPass.Foliage].Render();
-            //FoliageElementManager foliageMgr = (FoliageElementManager)ElementManagers[RenderPass.Foliage];
             GFX.Device.SetRenderTarget(0, null);
 
             GFX.Device.Textures[0] = NormalMap.GetTexture();
