@@ -27,13 +27,9 @@ namespace Gaia.SceneGraph.GameEntities
 
         ClutterPlacement clutter;
 
-
-        Texture2D NormalTangentTexure;
-        public TextureResource NormalTangentMap;
-
         string heightmapFileName;
 
-        int patchWidth = 16;
+        int patchWidth = 8;
         Vector2 heightRange;
         float[] heightValues;
         int width;
@@ -480,29 +476,6 @@ namespace Gaia.SceneGraph.GameEntities
             }
 
             BuildBlendMap(tex);
-
-            BuildNormalTangentMap();
-        }
-
-        void BuildNormalTangentMap()
-        {
-            NormalTangentTexure = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Vector4);
-
-            Vector4[] normTanData = new Vector4[width * depth];
-
-            for (int i = 0; i < width; i++)
-            {
-                for (int j = 0; j < depth; j++)
-                {
-                    Vector3 normal = Vector3.Right;
-                    ComputeVertexNormal(i, j, out normal);
-                    normTanData[i + j * width] = new Vector4(normal, 1.0f);
-                }
-            }
-
-            NormalTangentTexure.SetData<Vector4>(normTanData);
-            NormalTangentMap = new TextureResource();
-            NormalTangentMap.SetTexture(TextureResourceType.Texture2D, NormalTangentTexure);
         }
 
         void NormalizeBlendWeights()
@@ -537,17 +510,12 @@ namespace Gaia.SceneGraph.GameEntities
                     blendWeightData[j] = new Color(blendWeightData[j].ToVector4() * blendMapWeights[j]);
                 texture.SetData<Color>(blendWeightData);
 
-                blendMaps[i].GetTexture().Save("Test" + i + "_BEFORE.dds", ImageFileFormat.Dds);
-
                 GFX.Device.SetRenderTarget(0, blendMaps[i]);
                 GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(width, depth));
                 GFX.Device.Textures[0] = texture;
                 GFXPrimitives.Quad.Render();
                 GFX.Device.SetRenderTarget(0, null);
                 GFX.Device.Textures[0] = null;
-
-                blendMaps[i].GetTexture().Save("Test" + i + "_AFTER.dds", ImageFileFormat.Dds);
-                
             }
             /*
             Texture2D tempBlendTexture = new Texture2D(GFX.Device, width, depth, 1, TextureUsage.None, SurfaceFormat.Color);

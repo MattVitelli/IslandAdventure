@@ -505,6 +505,21 @@ namespace Gaia.Rendering
         public static Sphere SphereGeometry;
         public static Gem GemGeometry;
 
+        public static RenderElement CreateBillboardElement()
+        {
+            RenderElement element;
+            element = new RenderElement();
+            element.IndexBuffer = GFXPrimitives.Quad.GetInstanceIndexBuffer();
+            element.VertexBuffer = GFXPrimitives.Quad.GetInstanceVertexBuffer();
+            element.VertexCount = 4;
+            element.VertexDec = GFXVertexDeclarations.PTIDec;
+            element.VertexStride = VertexPTI.SizeInBytes;
+            element.StartVertex = 0;
+            element.IsAnimated = false;
+            element.PrimitiveCount = 4;
+            return element;
+        }
+
         public static void Initialize()
         {
             Quad = new ScreenAlignedQuad(false);

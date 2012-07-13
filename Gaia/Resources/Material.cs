@@ -180,6 +180,11 @@ namespace Gaia.Resources
             this.shader = newShader;
         }
 
+        public void SetName(string name)
+        {
+            this.name = name;
+        }
+
         public void SetupMaterial()
         {
             shader.SetupShader();

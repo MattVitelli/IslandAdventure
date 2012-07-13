@@ -147,6 +147,7 @@
     <Compile Include="Rendering\RenderElementManagers\LightElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\RenderElementManager.cs" />
     <Compile Include="Rendering\RenderElementManagers\SkyElementManager.cs" />
+    <Compile Include="Rendering\RenderViews\ImposterRenderView.cs" />
     <Compile Include="Rendering\RenderViews\MainRenderView.cs" />
     <Compile Include="Rendering\RenderViews\RenderView.cs" />
     <Compile Include="Rendering\RenderViews\SceneRenderView.cs" />

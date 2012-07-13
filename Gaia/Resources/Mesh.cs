@@ -13,6 +13,22 @@ using JigLibX.Geometry;
 
 namespace Gaia.Resources
 {
+    class Imposter
+    {
+        public RenderTarget2D BaseMap;
+        public RenderTarget2D NormalMap;
+
+        public Material ImposterMaterial;
+
+        public RenderElement Element;
+
+        public Imposter()
+        {
+            Element = GFXPrimitives.CreateBillboardElement();
+            ImposterMaterial = new Material();
+        }
+    }
+
     public class Mesh : IResource
     {
         string name;
@@ -32,6 +48,8 @@ namespace Gaia.Resources
         TriangleMesh collisionMesh;
         int vertexCount;
         VertexBuffer vertexBuffer;
+
+        Imposter imposterGeometry = null;
         
         public TriangleMesh GetCollisionMesh()
         {
@@ -563,9 +581,10 @@ namespace Gaia.Resources
         }
         */
 
-        public void Render(Matrix transform, RenderView view)
+        public void RenderNoLOD(Matrix transform, RenderView view)
         {
             BoundingFrustum frustum = new BoundingFrustum(transform * view.GetViewProjection());
+
             for (int i = 0; i < parts.Length; i++)
             {
                 if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
@@ -581,6 +600,45 @@ namespace Gaia.Resources
                     element.VertexStride = srcElem.VertexStride;
                     element.Transform = new Matrix[1] { transform };
                     view.AddElement(parts[i].material, element);
+                }
+            }
+        }
+
+        public void Render(Matrix transform, RenderView view)
+        {
+            BoundingFrustum frustum = new BoundingFrustum(transform * view.GetViewProjection());
+            if (imposterGeometry != null)
+            {
+                RenderElement srcElem = imposterGeometry.Element;
+                RenderElement element = new RenderElement();
+                element.IndexBuffer = srcElem.IndexBuffer;
+                element.PrimitiveCount = srcElem.PrimitiveCount;
+                element.StartVertex = srcElem.StartVertex;
+                element.VertexBuffer = srcElem.VertexBuffer;
+                element.VertexCount = srcElem.VertexCount;
+                element.VertexDec = srcElem.VertexDec;
+                element.VertexStride = srcElem.VertexStride;
+                element.Transform = new Matrix[1] { transform };
+                view.AddElement(imposterGeometry.ImposterMaterial, element);
+            }
+            else
+            {
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                    {
+                        RenderElement srcElem = parts[i].renderElement;
+                        RenderElement element = new RenderElement();
+                        element.IndexBuffer = srcElem.IndexBuffer;
+                        element.PrimitiveCount = srcElem.PrimitiveCount;
+                        element.StartVertex = srcElem.StartVertex;
+                        element.VertexBuffer = srcElem.VertexBuffer;
+                        element.VertexCount = srcElem.VertexCount;
+                        element.VertexDec = srcElem.VertexDec;
+                        element.VertexStride = srcElem.VertexStride;
+                        element.Transform = new Matrix[1] { transform };
+                        view.AddElement(parts[i].material, element);
+                    }
                 }
             }
         }
@@ -611,8 +669,101 @@ namespace Gaia.Resources
             }
         }
 
+        void CreateImposter()
+        {
+            const int textureSize = 128;
+            const int numViews = 4;
+
+            int textureWidth = textureSize * numViews;
+            int textureHeight = textureSize;
+
+            imposterGeometry = new Imposter();
+            imposterGeometry.BaseMap = new RenderTarget2D(GFX.Device, textureWidth, textureHeight, 1, SurfaceFormat.Color);
+            imposterGeometry.NormalMap = new RenderTarget2D(GFX.Device, textureWidth, textureHeight, 1, SurfaceFormat.Vector2);
+            
+            ImposterRenderView renderViewImposter = new ImposterRenderView(Matrix.Identity, Matrix.Identity, Vector3.Zero, 1.0f, 1000.0f);
+
+            Vector3 centerPos = (this.meshBounds.Min + this.meshBounds.Max)*0.5f;
+            float rad = Math.Max(this.meshBounds.Min.Length(), this.meshBounds.Max.Length());
+
+            renderViewImposter.SetNearPlane(1.0f);
+            renderViewImposter.SetFarPlane(rad * rad);
+            renderViewImposter.SetProjection(Matrix.CreateOrthographicOffCenter(-rad * 0.5f, rad * 0.5f, -rad * 0.5f, rad * 0.5f, 1.0f, rad * rad));
+
+            Viewport oldViewport = GFX.Device.Viewport;
+            DepthStencilBuffer oldDSBuffer = GFX.Device.DepthStencilBuffer;
+            DepthStencilBuffer dsBufferImposter = new DepthStencilBuffer(GFX.Device, textureWidth, textureHeight, oldDSBuffer.Format);
+            GFX.Device.DepthStencilBuffer = dsBufferImposter;
+
+            float deltaTheta = MathHelper.TwoPi / (float)numViews;
+
+            GFX.Device.SetRenderTarget(0, imposterGeometry.BaseMap);
+            GFX.Device.SetRenderTarget(1, imposterGeometry.NormalMap);
+            GFX.Device.Clear(Color.TransparentBlack);
+            
+            for (int i = 0; i < numViews; i++)
+            {
+                float theta = deltaTheta * i;
+                Vector3 offset = new Vector3((float)Math.Cos(theta), 0, (float)Math.Sin(theta)) * rad;
+                Vector3 camPos = centerPos + offset;
+
+                renderViewImposter.SetPosition(camPos);
+                renderViewImposter.SetView(Matrix.CreateLookAt(camPos, centerPos, Vector3.Up));
+
+                Viewport newViewport = new Viewport();
+                newViewport.X = i * textureSize;
+                newViewport.Y = 0;
+                newViewport.Width = textureSize;
+                newViewport.Height = textureHeight;
+
+                GFX.Device.Viewport = newViewport;
+                this.RenderNoLOD(Matrix.Identity, renderViewImposter);
+                renderViewImposter.Render();
+            }
+
+            GFX.Device.SetRenderTarget(1, null);
+
+            for (int i = 0; i < numViews; i++)
+            {
+                float theta = deltaTheta * i;
+                Vector3 offset = new Vector3((float)Math.Cos(theta), 0, (float)Math.Sin(theta)) * rad;
+                Vector3 camPos = centerPos + offset;
+
+                renderViewImposter.SetPosition(camPos);
+                renderViewImposter.SetView(Matrix.CreateLookAt(camPos, centerPos, Vector3.Up));
+
+                Viewport newViewport = new Viewport();
+                newViewport.X = i * textureSize;
+                newViewport.Y = 0;
+                newViewport.Width = textureSize;
+                newViewport.Height = textureHeight;
+
+                GFX.Device.Viewport = newViewport;
+                this.RenderNoLOD(Matrix.Identity, renderViewImposter);
+                renderViewImposter.RenderBlended();
+            }
+
+            GFX.Device.SetRenderTarget(0, null);
+
+            GFX.Device.Viewport = oldViewport;
+            GFX.Device.DepthStencilBuffer = oldDSBuffer;
+            dsBufferImposter.Dispose();
+            imposterGeometry.BaseMap.GetTexture().Save("BaseMapImposter.dds", ImageFileFormat.Dds);
+
+            imposterGeometry.ImposterMaterial.SetShader(ResourceManager.Inst.GetShader("ImposterShader"));
+            TextureResource baseMap = new TextureResource();
+            baseMap.SetTexture(TextureResourceType.Texture2D, imposterGeometry.BaseMap.GetTexture());
+            TextureResource normalMap = new TextureResource();
+            normalMap.SetTexture(TextureResourceType.Texture2D, imposterGeometry.NormalMap.GetTexture());
+            imposterGeometry.ImposterMaterial.SetTexture(0, baseMap);
+            imposterGeometry.ImposterMaterial.SetTexture(1, normalMap);
+            imposterGeometry.ImposterMaterial.SetName(name + "_IMPOSTER_MATERIAL");
+            imposterGeometry.ImposterMaterial.IsFoliage = true;
+        }
+
         void IResource.LoadFromXML(XmlNode node)
         {
+            bool useImposter = false;
             foreach (XmlAttribute attrib in node.Attributes)
             {
                 switch (attrib.Name.ToLower())
@@ -623,9 +774,17 @@ namespace Gaia.Resources
                     case "name":
                         name = attrib.Value;
                         break;
+                    case "useimposter":
+                        useImposter = bool.Parse(attrib.Value);
+                        break;
                 }
             }
             ModifyMesh();
+
+            if (useImposter)
+            {
+                CreateImposter();
+            }
 
             /*
             if(useCollision)

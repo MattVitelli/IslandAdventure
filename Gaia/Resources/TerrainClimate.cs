@@ -22,6 +22,9 @@ namespace Gaia.Resources
         public float[] heightCoeffs = new float[MAX_BLEND_ZONES];
         public float[] baseScores = new float[MAX_BLEND_ZONES];
 
+        public float[] ClutterDensity = new float[MAX_BLEND_ZONES];
+        public Material[] ClutterMaterials = new Material[MAX_BLEND_ZONES];
+
         public TextureResource[] BaseTextures = new TextureResource[MAX_BLEND_ZONES];
         public TextureResource[] NormalTextures = new TextureResource[MAX_BLEND_ZONES];
 
@@ -42,9 +45,10 @@ namespace Gaia.Resources
 
         void IResource.LoadFromXML(XmlNode node)
         {
-            for (int i = 0; i < blendZones.Length; i++)
+            for (int i = 0; i < MAX_BLEND_ZONES; i++)
             {
                 blendZones[i] = 0.0001f;
+                ClutterDensity[i] = 0.35f;
             }
 
             foreach (XmlAttribute attrib in node.Attributes)
@@ -77,6 +81,12 @@ namespace Gaia.Resources
                             break;
                         case "height":
                             heightCoeffs[index] = float.Parse(attrib.Value);
+                            break;
+                        case "clutterdensity":
+                            ClutterDensity[index] = float.Parse(attrib.Value);
+                            break;
+                        case "material":
+                            ClutterMaterials[index] = ResourceManager.Inst.GetMaterial(attrib.Value);
                             break;
                     }
                 }

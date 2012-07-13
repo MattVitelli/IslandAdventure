@@ -14,22 +14,13 @@ namespace Gaia.SceneGraph.GameEntities
 {
     public class GrassPatch
     {
-        public RenderElement Element;
+        public RenderElement[] Elements;
+
+        public Material[] Materials;
 
         public BoundingBox Bounds;
 
-        public GrassPatch()
-        {
-            Element = new RenderElement();
-            Element.IndexBuffer = GFXPrimitives.Quad.GetInstanceIndexBuffer();
-            Element.VertexBuffer = GFXPrimitives.Quad.GetInstanceVertexBuffer();
-            Element.VertexCount = 4;
-            Element.VertexDec = GFXVertexDeclarations.PTIDec;
-            Element.VertexStride = VertexPTI.SizeInBytes;
-            Element.StartVertex = 0;
-            Element.IsAnimated = false;
-            Element.PrimitiveCount = 4;
-        }
+        public bool CanRender;
     }
 
     public struct Location
@@ -44,7 +35,7 @@ namespace Gaia.SceneGraph.GameEntities
         }
     };
 
-    public struct ClimateInfo
+    public class ClimateInfo
     {
         public SortedList<int, List<Location>> AvailableSpots;
 
@@ -75,15 +66,17 @@ namespace Gaia.SceneGraph.GameEntities
     {
         TerrainHeightmap terrain;
         RenderView view;
-        Material grassMaterial;
         TerrainClimate climate;
         SortedList<int, GrassPatch> patches = new SortedList<int, GrassPatch>();
-        int numPatches = 3;
+        
+        int numVisiblePatches = 3;
         int grassPerPatch = 32;
         int numPatchesX;
         int numPatchesZ;
 
-        const int PLACEMENT_THRESHOLD = 3;
+        Vector3[] corners = new Vector3[8];
+
+        const int PLACEMENT_THRESHOLD = 60;
 
         ClimateInfo[] plantSpots;
 
@@ -92,7 +85,6 @@ namespace Gaia.SceneGraph.GameEntities
             this.terrain = terrain;
             this.view = renderView;
             this.climate = terrain.GetClimate();
-            grassMaterial = ResourceManager.Inst.GetMaterial("GrassMat0");
             BuildPlantSpots();
         }
 
@@ -156,7 +148,7 @@ namespace Gaia.SceneGraph.GameEntities
                         int currBlendIndex = k * 4;
                         for (int l = 0; l < locations.Length; l++)
                         {
-                            if(locations[l].Count > 0)
+                            if(locations[l].Count > 0 && climate.ClutterMaterials[currBlendIndex + l] != null)
                                 plantSpots[index].AvailableSpots.Add(currBlendIndex + l, locations[l]);
                         }
                     }
@@ -165,12 +157,13 @@ namespace Gaia.SceneGraph.GameEntities
             }
         }
 
-        public GrassPatch CreatePatchAtPoint(int xOrigin, int zOrigin)
+        public GrassPatch CreatePatchAtPoint(int patchX, int patchZ)
         {
-            GrassPatch currPatch = new GrassPatch();
-
             int width = terrain.GetWidth();
             int depth = terrain.GetDepth();
+
+            int xOrigin = patchX * grassPerPatch;
+            int zOrigin = patchZ * grassPerPatch;
 
             int startX = Math.Min(width - 1, Math.Max(0, xOrigin));
             int startZ = Math.Min(depth - 1, Math.Max(0, zOrigin));
@@ -178,28 +171,39 @@ namespace Gaia.SceneGraph.GameEntities
             int endX = Math.Min(width - 1, Math.Max(0, xOrigin + grassPerPatch));
             int endZ = Math.Min(depth - 1, Math.Max(0, zOrigin + grassPerPatch));
 
-            int index = 0;
-            currPatch.Element.Transform = new Matrix[(endX-startX) * (endZ-startZ)];
+            GrassPatch currPatch = new GrassPatch();
+
             Vector3 minPos = Vector3.One * float.PositiveInfinity;
             Vector3 maxPos = Vector3.One * float.NegativeInfinity;
-            for (int x = startX; x < endX; x++)
+
+            ClimateInfo currClimate = plantSpots[patchX + patchZ * numPatchesX];
+
+            currPatch.Elements = new RenderElement[currClimate.AvailableSpots.Count];
+            currPatch.Materials = new Material[currClimate.AvailableSpots.Count];
+
+            for(int i = 0; i < currClimate.AvailableSpots.Count; i++)
             {
-                for (int z = startZ; z < endZ; z++)
+                int currKey = currClimate.AvailableSpots.Keys[i];
+                int numTransforms = (int)(currClimate.AvailableSpots[currKey].Count * climate.ClutterDensity[currKey]);
+                currPatch.Elements[i] = GFXPrimitives.CreateBillboardElement();
+                currPatch.Elements[i].Transform = new Matrix[numTransforms];
+                currPatch.Materials[i] = climate.ClutterMaterials[currKey];
+                for(int j = 0; j < numTransforms; j++)
                 {
-                    Vector3 normal = Vector3.Up;
-                    float height = terrain.GetHeightValue(x, z);
-                    terrain.ComputeVertexNormal(x, z, out normal);
-                    float randX = (float)x + (float)RandomHelper.RandomGen.NextDouble();
-                    float randZ = (float)z + (float)RandomHelper.RandomGen.NextDouble();
+                    Location loc = currClimate.AvailableSpots[currKey][j];
+                    float height = terrain.GetHeightValue(loc.X, loc.Y);
+                    float randX = (float)loc.X + (float)RandomHelper.RandomGen.NextDouble();
+                    float randZ = (float)loc.Y + (float)RandomHelper.RandomGen.NextDouble();
                     Vector3 posWorldSpace = Vector3.Transform(new Vector3((randX / (float)width) * 2.0f - 1.0f, height, (randZ / (float)depth) * 2.0f - 1.0f), terrain.Transformation.GetTransform());
-                    currPatch.Element.Transform[index] = Matrix.CreateScale(5.0f);
-                    currPatch.Element.Transform[index].Translation = posWorldSpace;
-                    index++;
+                    currPatch.Elements[i].Transform[j] = Matrix.CreateScale(5.0f);
+                    currPatch.Elements[i].Transform[j].Translation = posWorldSpace;
 
                     minPos = Vector3.Min(posWorldSpace, minPos);
                     maxPos = Vector3.Max(posWorldSpace, maxPos);
                 }
+                
             }
+
             currPatch.Bounds = new BoundingBox(minPos, maxPos);
 
             return currPatch;
@@ -214,7 +218,7 @@ namespace Gaia.SceneGraph.GameEntities
             int camX = (int)MathHelper.Clamp(camPosTerrain.X * numPatchesX, 0, numPatchesX - 1);
             int camZ = (int)MathHelper.Clamp(camPosTerrain.Z * numPatchesZ, 0, numPatchesZ - 1);
 
-            int halfCount = numPatches / 2;
+            int halfCount = numVisiblePatches / 2;
             int startX = Math.Min(numPatchesX - 1, Math.Max(0, camX - halfCount));
             int startZ = Math.Min(numPatchesZ - 1, Math.Max(0, camZ - halfCount));
 
@@ -227,7 +231,7 @@ namespace Gaia.SceneGraph.GameEntities
                 {
                     int index = x + z * numPatchesX;
                     if (!patches.ContainsKey(index))
-                        patches.Add(index, CreatePatchAtPoint(x * grassPerPatch, z * grassPerPatch));
+                        patches.Add(index, CreatePatchAtPoint(x, z));
                     
                 }
             }
@@ -237,13 +241,24 @@ namespace Gaia.SceneGraph.GameEntities
         {
             Vector3 camPos = view.GetPosition();
             Vector3 halfBox = new Vector3((float)grassPerPatch / (float)terrain.GetWidth(), 1, (float)grassPerPatch / (float)terrain.GetDepth());
-            halfBox *= (float)numPatches*0.75f*terrain.Transformation.GetScale();
+            halfBox *= (float)numVisiblePatches*0.75f*terrain.Transformation.GetScale();
             BoundingBox clipBounds = new BoundingBox(camPos-halfBox, camPos+halfBox);
 
             for (int i = 0; i < patches.Keys.Count; i++)
             {
                 int key = patches.Keys[i];
                 GrassPatch currPatch = patches[key];
+                Vector3[] corners = new Vector3[8];
+                currPatch.Bounds.GetCorners(corners);
+                currPatch.CanRender = false;
+                for (int j = 0; j < corners.Length; j++)
+                {
+                    if (Vector3.Distance(corners[j], camPos) < GFXShaderConstants.GRASSFALLOFF)
+                    {
+                        currPatch.CanRender = true;
+                        break;
+                    }
+                }
 
                 if (clipBounds.Contains(currPatch.Bounds) == ContainmentType.Disjoint)
                 {
@@ -257,10 +272,14 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnRender(RenderView renderView)
         {
             BoundingFrustum frustum = renderView.GetFrustum();
+            
             for (int j = 0; j < patches.Count; j++)
             {
-                if(frustum.Contains(patches.Values[j].Bounds) != ContainmentType.Disjoint)
-                    renderView.AddElement(grassMaterial, patches.Values[j].Element);
+                if (patches.Values[j].CanRender && frustum.Contains(patches.Values[j].Bounds) != ContainmentType.Disjoint)
+                {
+                    for (int i = 0; i < patches.Values[j].Elements.Length; i++)
+                        renderView.AddElement(patches.Values[j].Materials[i], patches.Values[j].Elements[i]);
+                }
             }
         }
     }
