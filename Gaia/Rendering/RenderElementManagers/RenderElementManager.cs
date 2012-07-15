@@ -7,7 +7,7 @@ using Gaia.Rendering.RenderViews;
 
 namespace Gaia.Rendering
 {
-    public class RenderElement
+    public struct RenderElement
     {
         public int StartVertex;
 
@@ -25,7 +25,7 @@ namespace Gaia.Rendering
 
         public VertexDeclaration VertexDec;
 
-        public bool IsAnimated = false;
+        public bool IsAnimated;
 
     }
 

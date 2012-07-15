@@ -20,7 +20,7 @@ namespace Gaia.Rendering.RenderViews
             this.parent = parent;
             this.viewPort = viewport;
             this.splitIndex = splitIndex;
-
+            this.Name = "ShadowRenderView" + parent.GetHashCode();
             this.ElementManagers.Add(RenderPass.Shadows, new ShadowElementManager(this));
         }
 
@@ -37,6 +37,12 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.Viewport = viewPort;
 
             base.Render();
+
+            for (int i = 0; i < ElementManagers.Keys.Count; i++)
+            {
+                RenderPass pass = ElementManagers.Keys[i];
+                ElementManagers[pass].Render();
+            }
 
             if (splitIndex == GFXShaderConstants.NUM_SPLITS - 1)
                 parent.EndShadowMapping();

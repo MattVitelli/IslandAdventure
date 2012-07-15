@@ -12,6 +12,7 @@ using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph.GameEntities;
 using Gaia.Resources;
 using Gaia.Game;
+using Gaia.Rendering;
 
 namespace Gaia.SceneGraph
 {
@@ -248,6 +249,7 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
             
+            /*
             for (int i = 0; i < 250; i++)
             {
                 Model tree = new Model("Cecropia");
@@ -260,7 +262,7 @@ namespace Gaia.SceneGraph
                 transform.SetPosition(pos);
                 AddEntity("Tree", tree);
             }
-            
+            */
 
             //Entities.Add("Grass", new GrassPlacement());
 
@@ -319,6 +321,7 @@ namespace Gaia.SceneGraph
                 }
                 views[i] = renderView;
             }
+
             for (int i = 0; i < views.Length; i++)
             {
                 views[i].Render();

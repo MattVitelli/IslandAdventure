@@ -128,7 +128,7 @@ namespace Gaia.SceneGraph.GameEntities
             {
                 patchBounds[i] = MathUtils.TransformBounds(patches[i].GetBounds(), transform);
                 patches[i].BuildTriangleGraph(transform);
-                patches[i].GetRenderElement().Transform = new Matrix[1] { transform };
+                patches[i].renderElement.Transform = new Matrix[1] { transform };
             }
 
             CreateCollisionMesh();
@@ -627,7 +627,7 @@ namespace Gaia.SceneGraph.GameEntities
                     patchBounds[index] = MathUtils.TransformBounds(patches[index].GetBounds(), Transformation.GetTransform());
                     patchElements[index] = new TerrainRenderElement();
                     patchElements[index].BlendMaps = blendTextures;
-                    patchElements[index].Elements = new RenderElement[1] { patches[index].GetRenderElement() };
+                    //patchElements[index].Elements = new RenderElement[1] { patches[index].renderElement };
                 }
             }
         }
@@ -649,12 +649,12 @@ namespace Gaia.SceneGraph.GameEntities
                     if(view.GetRenderType() == Gaia.Rendering.RenderViews.RenderViewType.MAIN)
                     {
                         TerrainElementManager terrMgr = (TerrainElementManager)view.GetRenderElementManager(RenderPass.Terrain);
+                        patchElements[i].Element = patches[i].renderElement;
                         terrMgr.AddElement(climate, patchElements[i]);
                     }
                     else
                     {
-                        RenderElement element = patches[i].GetRenderElement();
-                        view.AddElement(terrainMaterial, element);
+                        view.AddElement(terrainMaterial, patches[i].renderElement);
                     }
                 }
             }
@@ -687,12 +687,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         int offsetZ;
 
-        RenderElement renderElement;
-
-        public RenderElement GetRenderElement()
-        {
-            return renderElement;
-        }
+        public RenderElement renderElement;
 
         public BoundingBox GetBounds()
         {
@@ -840,6 +835,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void BuildTriangleGraph(Matrix parentTransform)
         {
+            this.renderElement.Transform = new Matrix[1] { parentTransform };
             int primitiveCount = this.renderElement.PrimitiveCount;
             triangleGraph = new TriangleGraph[primitiveCount];
             ushort[] indices = new ushort[primitiveCount * 3];

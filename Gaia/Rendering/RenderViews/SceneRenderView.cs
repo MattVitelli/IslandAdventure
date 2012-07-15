@@ -58,7 +58,7 @@ namespace Gaia.Rendering.RenderViews
             this.ElementManagers.Add(RenderPass.Light, new LightElementManager(this));
             this.ElementManagers.Add(RenderPass.Particles, new ParticleElementManager(this));
             this.ElementManagers.Add(RenderPass.PostProcess, new PostProcessReflectionsElementManager(this));
-
+            this.Name = "SceneRenderView" + this.GetHashCode();
             InitializeTextures();
         }
 
@@ -114,6 +114,7 @@ namespace Gaia.Rendering.RenderViews
 
         public override void Render()
         {
+            base.Render();
             if (enableClipPlanes)
             {
                 Plane reflectionPlane = CreatePlane(0, -1.0f*Vector3.Up, true);

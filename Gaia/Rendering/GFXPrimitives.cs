@@ -59,10 +59,10 @@ namespace Gaia.Rendering
                 float a = MathHelper.ToRadians(deltaTheta * i);
                 Vector3 pos = new Vector3((float)Math.Cos(a), 0, (float)Math.Sin(a));
                 int index = i * 2;
-                vertices[index].Position = new Vector4(pos, 1.0f);
+                vertices[index].Position = pos;
                 vertices[index].Texcoord = new Vector2(i * deltaTCX, 0);
                 //vertices[index].Normal +=
-                vertices[index + 1].Position = new Vector4(pos + Vector3.Up, 1.0f);
+                vertices[index + 1].Position = pos + Vector3.Up;
                 vertices[index + 1].Texcoord = new Vector2(i * deltaTCX, 1);
             }
             /*
@@ -516,7 +516,7 @@ namespace Gaia.Rendering
             element.VertexStride = VertexPTI.SizeInBytes;
             element.StartVertex = 0;
             element.IsAnimated = false;
-            element.PrimitiveCount = 4;
+            element.PrimitiveCount = 2;
             return element;
         }
 

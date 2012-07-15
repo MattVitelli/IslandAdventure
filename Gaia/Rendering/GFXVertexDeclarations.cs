@@ -171,41 +171,32 @@ namespace Gaia.Rendering
 
     public struct VertexPNTTI
     {
-        public Vector4 Position;
+        public Vector3 Position;
         public Vector3 Normal;
         public Vector2 Texcoord;
         public Vector3 Tangent;
-        public Single Index;
+        public float Index;
 
-        public static int SizeInBytes = (13) * sizeof(float);
+        public static int SizeInBytes = (12) * sizeof(float);
 
         public static VertexElement[] VertexElements = new VertexElement[]
          {
-             new VertexElement( 0, 0, VertexElementFormat.Vector4, 
+             new VertexElement( 0, 0, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Position, 0),
-             new VertexElement( 0, sizeof(float)*4, VertexElementFormat.Vector3, 
+             new VertexElement( 0, sizeof(float)*3, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Normal, 0),
-             new VertexElement( 0, sizeof(float)*7, VertexElementFormat.Vector2, 
+             new VertexElement( 0, sizeof(float)*6, VertexElementFormat.Vector2, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.TextureCoordinate, 0),
-             new VertexElement( 0, sizeof(float)*9, VertexElementFormat.Vector3, 
+             new VertexElement( 0, sizeof(float)*8, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Tangent, 0),
-             new VertexElement( 0, sizeof(float)*12, VertexElementFormat.Single,
+             new VertexElement( 0, sizeof(float)*11, VertexElementFormat.Single,
                                       VertexElementMethod.Default, VertexElementUsage.TextureCoordinate, 1),
          };
         public VertexPNTTI(Vector3 position, Vector3 normal, Vector2 texCoord, Vector3 tangent, float index)
-        {
-            Position = new Vector4(position, 1.0f);
-            Normal = normal;
-            Texcoord = texCoord;
-            Tangent = tangent;
-            Index = index;
-        }
-
-        public VertexPNTTI(Vector4 position, Vector3 normal, Vector2 texCoord, Vector3 tangent, float index)
         {
             Position = position;
             Normal = normal;

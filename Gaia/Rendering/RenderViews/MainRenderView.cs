@@ -37,6 +37,7 @@ namespace Gaia.Rendering.RenderViews
             InitializeTextures();
             InitializeRenderViews();
             InitializeManagers();
+            Name = "MainRenderView" + this.GetHashCode();
         }
         ~MainRenderView()
         {
@@ -220,6 +221,7 @@ namespace Gaia.Rendering.RenderViews
 
         public override void Render()
         {
+            base.Render();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjection());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());

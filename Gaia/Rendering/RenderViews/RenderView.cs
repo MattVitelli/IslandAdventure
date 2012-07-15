@@ -12,7 +12,7 @@ namespace Gaia.Rendering.RenderViews
         MAIN=2,
     };
 
-    public abstract class RenderView
+    public abstract class RenderView : IComparable
     {
         BoundingFrustum frustum;
         Vector3 position;
@@ -40,6 +40,19 @@ namespace Gaia.Rendering.RenderViews
         bool updateViewProjLocal = true;
         protected RenderViewType renderType;
 
+        protected string Name;
+
+        public int CompareTo(object obj)
+        {
+            if (obj == null) return 1;
+
+            RenderView other = obj as RenderView;
+            if (other != null)
+                return string.Compare(this.Name, other.Name);
+            else
+                throw new ArgumentException("Object is not a materials");
+        }
+
         public RenderView(RenderViewType renderType, Matrix view, Matrix projection, Vector3 position, float nearPlane, float farPlane)
         {
             this.renderType = renderType;
@@ -58,14 +71,12 @@ namespace Gaia.Rendering.RenderViews
 
         public virtual void Render()
         {
+            GFX.Inst.RenderMeshes();
+
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_MODELVIEW, GetViewProjection());
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());
-            for (int i = 0; i < ElementManagers.Keys.Count; i++)
-            {
-                RenderPass pass = ElementManagers.Keys[i];
-                ElementManagers[pass].Render();
-            }
+            
         }
 
         public RenderElementManager GetRenderElementManager(RenderPass type)

@@ -4,7 +4,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 
+using Gaia.Resources;
 using Gaia.Rendering.Simulators;
+
 namespace Gaia.Rendering
 {
     public enum GFXTextureDataType
@@ -66,6 +68,8 @@ namespace Gaia.Rendering
         DepthStencilBuffer DSBufferScene;
 
         public ParticleSimulator particleSystem;
+
+        public Queue<Mesh> meshesToRender = new Queue<Mesh>();
 
         ContentManager contentManager;
 
@@ -196,6 +200,22 @@ namespace Gaia.Rendering
             DSBufferScene = new DepthStencilBuffer(GFX.Device, width, height, Device.DepthStencilBuffer.Format);
 
             dsBufferLarge = new DepthStencilBuffer(Device, 2048, 2048, Device.DepthStencilBuffer.Format);
+        }
+
+        public void AddMeshToRender(Mesh mesh)
+        {
+            meshesToRender.Enqueue(mesh);
+            mesh.Rendered = false;
+        }
+
+        public void RenderMeshes()
+        {
+            while (meshesToRender.Count > 0)
+            {
+                Mesh mesh = meshesToRender.Dequeue();
+                mesh.Rendered = true;
+                mesh.RenderPostSceneQuery();
+            }
         }
 
         public void RenderGUI()

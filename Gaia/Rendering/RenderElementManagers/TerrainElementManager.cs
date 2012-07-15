@@ -11,7 +11,7 @@ namespace Gaia.Rendering
     public class TerrainRenderElement
     {
         public Texture2D[] BlendMaps;
-        public RenderElement[] Elements;
+        public RenderElement Element;
     }
 
     public class TerrainElementManager : RenderElementManager
@@ -61,9 +61,9 @@ namespace Gaia.Rendering
 
         void DrawElement(TerrainRenderElement element)
         {
-            for (int i = 0; i < element.Elements.Length; i++)
+            //for (int i = 0; i < element.Elements.Length; i++)
             {
-                RenderElement currElem = element.Elements[i];
+                RenderElement currElem = element.Element;
                 GFX.Device.VertexDeclaration = currElem.VertexDec;
                 GFX.Device.Indices = currElem.IndexBuffer;
                 GFX.Device.Vertices[0].SetSource(currElem.VertexBuffer, 0, currElem.VertexStride);

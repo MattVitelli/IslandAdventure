@@ -48,8 +48,11 @@ namespace Gaia.Resources
         TriangleMesh collisionMesh;
         int vertexCount;
         VertexBuffer vertexBuffer;
+        VertexBuffer vertexBufferInstanced;
 
         Imposter imposterGeometry = null;
+
+        public bool Rendered = true;
         
         public TriangleMesh GetCollisionMesh()
         {
@@ -64,9 +67,11 @@ namespace Gaia.Resources
         class ModelPart
         {
             public RenderElement renderElement;
+            public RenderElement renderElementInstanced;
             public string name;
             public Material material;
             public BoundingBox bounds;
+            public SortedList<RenderView, List<Matrix>> cachedTransforms = new SortedList<RenderView, List<Matrix>>();
         }
 
         struct ModelVertex
@@ -429,7 +434,7 @@ namespace Gaia.Resources
                         
                         for(int i = 0; i < verts.Length; i++)
                         {
-                            verts[i].Position = Vector4.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
+                            verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
                         }
                         vertexBuffer.SetData<VertexPNTTI>(verts);
                         
@@ -542,6 +547,8 @@ namespace Gaia.Resources
                 currElem.IndexBuffer.SetData<ushort>(indexData);
             }
             vertexBuffer.Dispose();
+
+            vertexCount = newVertexData.Count;
             vertexBuffer = new VertexBuffer(GFX.Device, VertexPNTTI.SizeInBytes * newVertexData.Count, BufferUsage.None);
             vertexBuffer.SetData<VertexPNTTI>(newVertexData.ToArray());
             for (int i = 0; i < parts.Length; i++)
@@ -589,24 +596,37 @@ namespace Gaia.Resources
             {
                 if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
                 {
-                    RenderElement srcElem = parts[i].renderElement;
-                    RenderElement element = new RenderElement();
-                    element.IndexBuffer = srcElem.IndexBuffer;
-                    element.PrimitiveCount = srcElem.PrimitiveCount;
-                    element.StartVertex = srcElem.StartVertex;
-                    element.VertexBuffer = srcElem.VertexBuffer;
-                    element.VertexCount = srcElem.VertexCount;
-                    element.VertexDec = srcElem.VertexDec;
-                    element.VertexStride = srcElem.VertexStride;
+                    RenderElement element = parts[i].renderElement;
                     element.Transform = new Matrix[1] { transform };
                     view.AddElement(parts[i].material, element);
                 }
             }
         }
 
+        public void RenderPostSceneQuery()
+        {
+            for (int i = 0; i < parts.Length; i++)
+            {
+                for (int j = 0; j < parts[i].cachedTransforms.Count; j++)
+                {
+                    RenderView view = parts[i].cachedTransforms.Keys[j];
+                    parts[i].renderElementInstanced.Transform = parts[i].cachedTransforms[view].ToArray();
+                    view.AddElement(parts[i].material, parts[i].renderElementInstanced);
+                    parts[i].cachedTransforms[view].Clear();
+                }
+            }
+            
+        }
+
         public void Render(Matrix transform, RenderView view)
         {
-            BoundingFrustum frustum = new BoundingFrustum(transform * view.GetViewProjection());
+            if (Rendered)
+                GFX.Inst.AddMeshToRender(this);
+
+            BoundingFrustum frustum = view.GetFrustum();
+            Matrix oldMat = frustum.Matrix;
+            frustum.Matrix = transform * view.GetViewProjection();
+            /*
             if (imposterGeometry != null)
             {
                 RenderElement srcElem = imposterGeometry.Element;
@@ -621,31 +641,33 @@ namespace Gaia.Resources
                 element.Transform = new Matrix[1] { transform };
                 view.AddElement(imposterGeometry.ImposterMaterial, element);
             }
-            else
+            */
+            //else
             {
                 for (int i = 0; i < parts.Length; i++)
                 {
                     if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
                     {
+                        if (!parts[i].cachedTransforms.ContainsKey(view))
+                            parts[i].cachedTransforms.Add(view, new List<Matrix>());
+                        parts[i].cachedTransforms[view].Add(transform);
+                        /*
                         RenderElement srcElem = parts[i].renderElement;
-                        RenderElement element = new RenderElement();
-                        element.IndexBuffer = srcElem.IndexBuffer;
-                        element.PrimitiveCount = srcElem.PrimitiveCount;
-                        element.StartVertex = srcElem.StartVertex;
-                        element.VertexBuffer = srcElem.VertexBuffer;
-                        element.VertexCount = srcElem.VertexCount;
-                        element.VertexDec = srcElem.VertexDec;
-                        element.VertexStride = srcElem.VertexStride;
+                        RenderElement element = srcElem;
                         element.Transform = new Matrix[1] { transform };
                         view.AddElement(parts[i].material, element);
+                        */
                     }
                 }
             }
+            frustum.Matrix = oldMat;
         }
 
         public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view)
         {
-            BoundingFrustum frustum = new BoundingFrustum(transform * view.GetViewProjection());
+            BoundingFrustum frustum = view.GetFrustum();
+            Matrix oldMat = frustum.Matrix;
+            frustum.Matrix = transform * view.GetViewProjection();
             Matrix[] transforms = new Matrix[nodes.Length];
             for (int i = 0; i < nodes.Length; i++)
                 transforms[i] = animNodes[nodes[i].Name].Transform;
@@ -666,6 +688,83 @@ namespace Gaia.Resources
                     element.IsAnimated = true;
                     view.AddElement(parts[i].material, element);
                 }
+            }
+            frustum.Matrix = oldMat;
+        }
+
+        void CreateInstanceData()
+        {
+            VertexPNTTI[] vertData = new VertexPNTTI[vertexCount];
+            vertexBuffer.GetData<VertexPNTTI>(vertData);
+            VertexPNTTI[] instVerts = new VertexPNTTI[vertexCount * GFXShaderConstants.NUM_INSTANCES];
+            for (int i = 0; i < GFXShaderConstants.NUM_INSTANCES; i++)
+            {
+                for (int j = 0; j < vertexCount; j++)
+                {
+                    
+                    int index = i * vertexCount + j;
+                    instVerts[index] = vertData[j];
+                    instVerts[index].Index = i;
+                }
+            }
+
+            vertexBufferInstanced = new VertexBuffer(GFX.Device, instVerts.Length * VertexPNTTI.SizeInBytes, BufferUsage.None);
+            vertexBufferInstanced.SetData<VertexPNTTI>(instVerts);
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i].renderElementInstanced = parts[i].renderElement;
+                IndexElementSize elementSize = parts[i].renderElement.IndexBuffer.IndexElementSize;
+                IndexBuffer indexBufferInstanced;
+
+                if (instVerts.Length > ushort.MaxValue)
+                    elementSize = IndexElementSize.ThirtyTwoBits;
+                if (elementSize == IndexElementSize.SixteenBits)
+                {
+                    ushort[] indexData = new ushort[parts[i].renderElement.PrimitiveCount * 3];
+                    parts[i].renderElement.IndexBuffer.GetData<ushort>(indexData);
+
+                    ushort[] instIB = new ushort[indexData.Length * GFXShaderConstants.NUM_INSTANCES];
+                    for (int k = 0; k < GFXShaderConstants.NUM_INSTANCES; k++)
+                    {
+                        for (int j = 0; j < indexData.Length; j++)
+                        {
+                            int newIndex = indexData[j] + k * vertexCount;
+                            if (newIndex > ushort.MaxValue)
+                                Console.WriteLine("This is very very bad!");
+                            instIB[k * indexData.Length + j] = (ushort)newIndex;
+                        }
+                    }
+
+                    indexBufferInstanced = new IndexBuffer(GFX.Device, sizeof(ushort) * instIB.Length, BufferUsage.None, elementSize);
+
+                    indexBufferInstanced.SetData<ushort>(instIB);
+                }
+                else
+                {
+                    ushort[] indexData = new ushort[parts[i].renderElement.PrimitiveCount * 3];
+                    parts[i].renderElement.IndexBuffer.GetData<ushort>(indexData);
+
+                    uint[] instIB = new uint[indexData.Length * GFXShaderConstants.NUM_INSTANCES];
+                    for (int k = 0; k < GFXShaderConstants.NUM_INSTANCES; k++)
+                    {
+                        for (int j = 0; j < indexData.Length; j++)
+                        {
+                            ulong index = (ulong)indexData[j] + (ulong)k * (ulong)vertexCount;
+                            if (index > ulong.MaxValue)
+                                Console.WriteLine("This is very very bad!");
+                            instIB[k * indexData.Length + j] = (uint)(indexData[j] + k * vertexCount);
+                        }
+                    }
+
+                    indexBufferInstanced = new IndexBuffer(GFX.Device, sizeof(uint) * instIB.Length, BufferUsage.None, elementSize);
+
+                    indexBufferInstanced.SetData<uint>(instIB);
+                }
+
+                parts[i].renderElementInstanced.IsAnimated = false;
+                parts[i].renderElementInstanced.VertexBuffer = vertexBufferInstanced;
+                parts[i].renderElementInstanced.IndexBuffer = indexBufferInstanced;
             }
         }
 
@@ -779,7 +878,12 @@ namespace Gaia.Resources
                         break;
                 }
             }
+            
+            
+
             ModifyMesh();
+
+            CreateInstanceData();
 
             if (useImposter)
             {
