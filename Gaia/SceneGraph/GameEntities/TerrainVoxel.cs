@@ -54,7 +54,7 @@ namespace Gaia.SceneGraph.GameEntities
         int blendMapWidth = 32;
         int blendMapHeight = 32;
         int blendMapDepth = 32;
-        TerrainClimateVoxels climate;
+        TerrainClimate climate;
 
         public int[] surfaceIndices;
 
@@ -64,7 +64,7 @@ namespace Gaia.SceneGraph.GameEntities
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
             GenerateFloatingIslands(128);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
-            climate = ResourceManager.Inst.GetTerrainClimateVoxels("TestTerrain");
+            climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
         }
 
         public TerrainVoxel(string filename)
@@ -73,7 +73,7 @@ namespace Gaia.SceneGraph.GameEntities
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.0725f);
 
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
-            climate = ResourceManager.Inst.GetTerrainClimateVoxels("TestTerrain");
+            climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
 
             GenerateTerrainFromFile(filename);
         }
@@ -299,17 +299,19 @@ namespace Gaia.SceneGraph.GameEntities
 
             PerformBlur(heightMap);
 
-            InitializeClimateMap();
+            //InitializeClimateMap();
 
-            InitializeMaterial();
+            //InitializeMaterial();
 
             InitializeSurfaceIndices();
 
             InitializeVoxels();
         }
 
+        /*
         void InitializeMaterial()
         {
+            
             terrainMaterial.SetTexture(0, climate.BaseMapAtlas);
             terrainMaterial.SetTexture(1, climate.NormalMapAtlas);
             TextureResource blendTex = new TextureResource();
@@ -320,7 +322,9 @@ namespace Gaia.SceneGraph.GameEntities
             terrainMaterial.SetTexture(3, blendIDTex);
             terrainMaterial.kAmbient = climate.GetInverseResolution();
             terrainMaterial.kDiffuse = Vector3.One / new Vector3(blendMapWidth, blendMapHeight, blendMapDepth);
+            
         }
+        */
 
         void InitializeClimateMap()
         {

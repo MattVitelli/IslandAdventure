@@ -610,12 +610,16 @@ namespace Gaia.Resources
                 for (int j = 0; j < parts[i].cachedTransforms.Count; j++)
                 {
                     RenderView view = parts[i].cachedTransforms.Keys[j];
-                    parts[i].renderElementInstanced.Transform = parts[i].cachedTransforms[view].ToArray();
-                    view.AddElement(parts[i].material, parts[i].renderElementInstanced);
+                    RenderElement tempElem = parts[i].renderElementInstanced;
+                    tempElem.Transform = parts[i].cachedTransforms[view].ToArray();
+                    if (tempElem.Transform.Length > 1)
+                    {
+                        int m = 0;
+                    }
+                    view.AddElement(parts[i].material, tempElem);
                     parts[i].cachedTransforms[view].Clear();
                 }
             }
-            
         }
 
         public void Render(Matrix transform, RenderView view)
@@ -761,7 +765,8 @@ namespace Gaia.Resources
 
                     indexBufferInstanced.SetData<uint>(instIB);
                 }
-
+                parts[i].renderElementInstanced.VertexDec = GFXVertexDeclarations.PNTTIDec;
+                parts[i].renderElementInstanced.VertexStride = VertexPNTTI.SizeInBytes;
                 parts[i].renderElementInstanced.IsAnimated = false;
                 parts[i].renderElementInstanced.VertexBuffer = vertexBufferInstanced;
                 parts[i].renderElementInstanced.IndexBuffer = indexBufferInstanced;

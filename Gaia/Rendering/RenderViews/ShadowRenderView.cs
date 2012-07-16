@@ -20,13 +20,16 @@ namespace Gaia.Rendering.RenderViews
             this.parent = parent;
             this.viewPort = viewport;
             this.splitIndex = splitIndex;
-            this.Name = "ShadowRenderView" + parent.GetHashCode();
+            this.Name = "ShadowRenderView" + this.GetHashCode();
             this.ElementManagers.Add(RenderPass.Shadows, new ShadowElementManager(this));
+            ShadowElementManager foliageManager = new ShadowElementManager(this);
+            foliageManager.SetShaders(ResourceManager.Inst.GetShader("ShadowVSMTransparent"), ResourceManager.Inst.GetShader("ShadowVSMTransparentInst"));
+            this.ElementManagers.Add(RenderPass.Foliage, foliageManager);
         }
 
         public override void AddElement(Material material, RenderElement element)
         {
-            ShadowElementManager sceneMgr = (ShadowElementManager)ElementManagers[RenderPass.Shadows];
+            ShadowElementManager sceneMgr = (ShadowElementManager)((material.IsFoliage) ? ElementManagers[RenderPass.Foliage] : ElementManagers[RenderPass.Shadows]);
             sceneMgr.AddElement(material, element);
         }
 

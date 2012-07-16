@@ -13,6 +13,7 @@ using Gaia.SceneGraph.GameEntities;
 using Gaia.Resources;
 using Gaia.Game;
 using Gaia.Rendering;
+using Gaia.Voxels;
 
 namespace Gaia.SceneGraph
 {
@@ -227,16 +228,42 @@ namespace Gaia.SceneGraph
             Initialize();
         }
 
+        void CreateForest()
+        {
+            List<TriangleGraph> availableTriangles;
+            BoundingBox region = MainTerrain.Transformation.GetBounds();
+            if (MainTerrain.GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, region))
+            {
+                for (int i = 0; i < 200; i++)
+                {
+                    Model tree = new Model("Cecropia");
+                    NormalTransform transform = new NormalTransform();
+                    tree.Transformation = transform;
+                    int randomIndex = RandomHelper.RandomGen.Next(i % availableTriangles.Count, availableTriangles.Count);
+                    TriangleGraph triangle = availableTriangles[randomIndex];
+                    Vector3 position = triangle.GeneratePointInTriangle(RandomHelper.RandomGen);
+                    Vector3 normal = triangle.Normal;
+                    transform.ConformToNormal(normal);
+                    transform.SetPosition(position);
+                    AddEntity("Tree", tree);
+                }
+            }
+            availableTriangles.Clear();
+            GC.Collect();
+        }
+
         void InitializeScene()
         {
             ResetScene();
 
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
-            //MainTerrain = new TerrainVoxel("Textures/HeightMap2.dds");
-            
+            MainTerrain = new TerrainVoxel();
+            /*
             MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 0.5f);
             MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 512.0f);
+            */
+
             MainPlayer = new Camera();
             
             Entities.Add("MainCamera", MainPlayer);
@@ -249,22 +276,9 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
             
-            /*
-            for (int i = 0; i < 250; i++)
-            {
-                Model tree = new Model("Cecropia");
-                NormalTransform transform = new NormalTransform();
-                tree.Transformation = transform;
-                Vector3 pos = Vector3.Zero;
-                Vector3 normal = Vector3.Up;
-                MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
-                transform.ConformToNormal(normal);
-                transform.SetPosition(pos);
-                AddEntity("Tree", tree);
-            }
-            */
+            CreateForest();      
 
-            //Entities.Add("Grass", new GrassPlacement());
+            //Entities.Add("Grass", new ShapePlacement());
 
 
             /*

@@ -21,6 +21,12 @@ namespace Gaia.Rendering
             shadowShaderInst = ResourceManager.Inst.GetShader("ShadowVSMInst");
         }
 
+        public void SetShaders(Shader defaultShader, Shader instanceShader)
+        {
+            shadowShader = defaultShader;
+            shadowShaderInst = instanceShader;
+        }
+
         public override void Render()
         {
             GFX.Device.RenderState.CullMode = CullMode.None;
@@ -31,6 +37,10 @@ namespace Gaia.Rendering
             for (int i = 0; i < Elements.Keys.Count; i++)
             {
                 Material key = Elements.Keys[i];
+                if (key.IsFoliage)
+                {
+                    key.SetupTextures();
+                }
                 while (Elements[key].Count > 0)
                 {
                     RenderElement currElem = Elements[key].Dequeue();

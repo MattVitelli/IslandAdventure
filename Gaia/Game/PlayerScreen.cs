@@ -17,6 +17,7 @@ namespace Gaia.Game
     public class PlayerScreen : UIScreen
     {
         UICompass compass;
+        UIButton scoreLabel;
         UIButton journalStatus;
         UIButton interactButton;
         UIButton interactStatus;
@@ -25,7 +26,6 @@ namespace Gaia.Game
 
         Scene scene;
         bool addedMarker = false;
-
 
         const float interactDist = 3.5f;
         const float journalFadeInTime = 1.5f;
@@ -48,6 +48,9 @@ namespace Gaia.Game
             crosshair.Position = Vector2.Zero;
             crosshair.Scale = Vector2.One * 0.07f;
 
+            scoreLabel = new UIButton(null, Vector4.One, "Score:");
+            scoreLabel.Position = new Vector2(0.7f, 0.85f);
+           
             journalStatus = new UIButton(null, Vector4.One, "Journal Updated!");
             journalStatus.Position = new Vector2(-0.7f, 0.85f);
             journalStatus.SetVisible(false);
@@ -81,6 +84,7 @@ namespace Gaia.Game
             this.controls.Add(compass);
             this.controls.Add(interactStatus);
             this.controls.Add(interactButton);
+            this.controls.Add(scoreLabel);
         }
 
         void PerformInteraction()
@@ -145,7 +149,7 @@ namespace Gaia.Game
             {
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
-                PerformInteraction();
+                //PerformInteraction();
             }
 
             Entity testEnt = scene.FindEntity("scene_geom2");

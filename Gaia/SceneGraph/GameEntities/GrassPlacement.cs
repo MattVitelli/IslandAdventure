@@ -21,6 +21,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnAdd(Scene scene)
         {
             grassMaterials = new Material[] { ResourceManager.Inst.GetMaterial("GrassMat0") };
+            grassScale = GFXShaderConstants.GRASSFALLOFF / grassCount;
             base.OnAdd(scene);
         }
 
@@ -55,7 +56,7 @@ namespace Gaia.SceneGraph.GameEntities
 
                         if (!grassTransforms.ContainsKey(idx))
                         {
-                            FoliageCluster cluster = new FoliageCluster(20, 2, 4);
+                            FoliageCluster cluster = new FoliageCluster(100, 1, 1);
                             for (int i = 0; i < grassMaterials.Length; i++)
                                 cluster.AddMaterial(grassMaterials[i]);
                             cluster.SetDimensions(new Vector3(2.75f, 1.45f, 2.75f), new Vector3(5.35f, 3.5f, 5.35f));
