@@ -490,7 +490,7 @@ namespace Gaia.SceneGraph.GameEntities
         void GenerateFloatingIslands(int size)
         {
             DensityFieldWidth = size + 1;
-            DensityFieldHeight = DensityFieldWidth;
+            DensityFieldHeight = size/2 + 1;
             DensityFieldDepth = DensityFieldWidth;
 
             InitializeFieldData();

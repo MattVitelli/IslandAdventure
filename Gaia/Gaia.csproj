@@ -177,7 +177,6 @@
     <Compile Include="SceneGraph\GameEntities\ClutterPlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\ShapePlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Decal.cs" />
-    <Compile Include="SceneGraph\GameEntities\RoundManager.cs" />
     <Compile Include="SceneGraph\GameEntities\FoliageCluster.cs" />
     <Compile Include="SceneGraph\GameEntities\GrassPlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Light.cs" />

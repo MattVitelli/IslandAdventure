@@ -12,6 +12,7 @@ namespace JigLibX.Geometry
     public class TriangleMesh : Primitive
     {
         private KDTreeTriangles kdTree;
+        private Octree octree;
         private int maxTrianglesPerCell;
         private float minCellSize;
 
@@ -26,21 +27,27 @@ namespace JigLibX.Geometry
         {
         }
 
-        public void CreateMesh(Vector3[] vertices,
-            TriangleVertexIndices[] triangleVertexIndices,
+        public void CreateMesh(List<Vector3> vertices,
+            List<TriangleVertexIndices> triangleVertexIndices,
             int maxTrianglesPerCell, float minCellSize)
         {
-            int numVertices = vertices.Length;
-            
+            this.octree = new Octree(vertices, triangleVertexIndices);
             this.maxTrianglesPerCell = maxTrianglesPerCell;
             this.minCellSize = minCellSize;
         }
 
         public override void GetBoundingBox(out AABox box)
         {
-            BoundingBox bounds = kdTree.GetRoot().boundingBox;
-            box = new AABox(bounds.Min, bounds.Max);
-            box.Transform = Transform;
+            if (octree == null)
+            {
+                BoundingBox bounds = kdTree.GetRoot().boundingBox;
+                box = new AABox(bounds.Min, bounds.Max);
+                box.Transform = Transform;
+            }
+            else
+            {
+                box = octree.BoundingBox;
+            }
         }
 
         private Matrix transformMatrix;
@@ -76,30 +83,30 @@ namespace JigLibX.Geometry
                 return invTransform;
             }
         }
-
+        /*
         public KDTreeTriangles KDTree
         {
             get { return this.kdTree; }
         }
-
+        */
         public int GetNumTriangles()
         {
-            return kdTree.NumTriangles;
+            return (octree == null)?kdTree.NumTriangles:octree.NumTriangles;
         }
 
         public IndexedTriangle GetTriangle(int iTriangle)
         {
-            return kdTree.GetIndexedTriangle(iTriangle);
+            return (octree == null)?kdTree.GetIndexedTriangle(iTriangle):octree.GetTriangle(iTriangle);
         }
 
         public Vector3 GetVertex(int iVertex)
         {
-            return kdTree.GetVertex(iVertex);
+            return (octree == null)?kdTree.GetVertex(iVertex):octree.GetVertex(iVertex);
         }
 
         public void GetVertex(int iVertex, out Vector3 result)
         {
-            result = kdTree.GetVertex(iVertex);
+            result = (octree == null)?kdTree.GetVertex(iVertex):octree.GetVertex(iVertex);
         }
 
         public unsafe int GetTrianglesIntersectingtAABox(int* triangles, int maxTriangles, ref BoundingBox bb)
@@ -112,7 +119,7 @@ namespace JigLibX.Geometry
             BoundingBox rotBB = bb;
             BoundingBoxHelper.AddPoint(ref aabbMin, ref rotBB);
             BoundingBoxHelper.AddPoint(ref aabbMax, ref rotBB);
-            return kdTree.GetTrianglesIntersectingtAABox(triangles, maxTriangles, ref rotBB);
+            return (octree == null)?kdTree.GetTrianglesIntersectingtAABox(triangles, maxTriangles, ref rotBB):octree.GetTrianglesIntersectingtAABox(triangles, maxTriangles, ref rotBB);
         }
 
         public override Primitive Clone()
@@ -121,6 +128,7 @@ namespace JigLibX.Geometry
             //            triangleMesh.CreateMesh(vertices, triangleVertexIndices, maxTrianglesPerCell, minCellSize);
             // its okay to share the octree
             triangleMesh.kdTree = this.kdTree;
+            triangleMesh.octree = this.octree;
             triangleMesh.Transform = Transform;
             return triangleMesh;
         }

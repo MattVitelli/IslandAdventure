@@ -9,7 +9,7 @@ using Gaia.Rendering.RenderViews;
 using Gaia.Physics;
 using Gaia.Core;
 using Gaia.Resources;
-using Gaia.Game;
+
 
 namespace Gaia.SceneGraph.GameEntities
 {
@@ -38,9 +38,6 @@ namespace Gaia.SceneGraph.GameEntities
         const float TARGET_SWITCH_SPEED = 1.35f;
         Vector3 target = Vector3.Forward;
 
-        Transform fpsTransform = new Transform();
-        Weapon gun;
-
         public void SetTarget(Vector3 position, bool enabled)
         {
             if (enabled)
@@ -62,8 +59,6 @@ namespace Gaia.SceneGraph.GameEntities
 
             scene.MainCamera = renderView;
             scene.AddRenderView(renderView);
-
-            gun = new Weapon("P90_V", fpsTransform, scene);
 
             fieldOfView = MathHelper.ToRadians(70);
             aspectRatio = GFX.Inst.DisplayRes.X / GFX.Inst.DisplayRes.Y;
@@ -98,7 +93,7 @@ namespace Gaia.SceneGraph.GameEntities
             }
             else
                 transform = Matrix.CreateLookAt(this.Transformation.GetPosition(), this.target, Vector3.Up);
-
+            /*
             Vector3 moveDir = Vector3.Zero;
             if (InputManager.Inst.IsKeyDown(GameKey.MoveFoward))
                 moveDir += transform.Forward * forwardSpeed * (Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveFoward) / 3.0f));
@@ -111,12 +106,7 @@ namespace Gaia.SceneGraph.GameEntities
                 moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
 
             this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime);
-            fpsTransform.SetPosition(this.Transformation.GetPosition());
-            fpsTransform.SetRotation(this.Transformation.GetRotation());
-            if (InputManager.Inst.IsLeftMouseDown())
-            {
-                gun.OnFire(this.Transformation.GetPosition(), transform.Forward);
-            }
+            */
         }
 
         public override void OnUpdate()
@@ -137,16 +127,8 @@ namespace Gaia.SceneGraph.GameEntities
             renderView.SetNearPlane(nearPlane);
             renderView.SetFarPlane(farPlane);
             renderView.UpdateRenderViews(); //Update reflections
-                        
-            //gun.OnUpdate(this.Transformation);
 
             base.OnUpdate();
-        }
-
-        public override void OnRender(RenderView view)
-        {
-            base.OnRender(view);
-            //gun.OnRender(view);
         }
     }
 }

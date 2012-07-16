@@ -30,7 +30,7 @@ namespace Gaia.SceneGraph
 
         public Terrain MainTerrain;
 
-        public RoundManager RoundSystem;
+        //public RoundManager RoundSystem;
 
         BoundingBox sceneDimensions;
 
@@ -157,10 +157,10 @@ namespace Gaia.SceneGraph
 
         void CreateTeams()
         {
-            Tank playerTank = new Tank();
-            playerTank.SetEnabled(true);
-            playerTank.SetControllable(true);
-            Entities.Add("player", playerTank);
+            Player player = new Player();
+            player.SetEnabled(true);
+            player.SetControllable(true);
+            Entities.Add("player", player);
         }
 
         void InitializePhysics()
@@ -176,7 +176,7 @@ namespace Gaia.SceneGraph
             world.Gravity = new Vector3(0, -10, 0);//PhysicsHelper.GravityEarth, 0);
             world.NumCollisionIterations = 16;
             world.NumContactIterations = 16;
-            world.NumPenetrationRelaxtionTimesteps = 30;// 15;
+            world.NumPenetrationRelaxtionTimesteps = 15;
         }
 
         public void ResetScene()
@@ -234,9 +234,9 @@ namespace Gaia.SceneGraph
             BoundingBox region = MainTerrain.Transformation.GetBounds();
             if (MainTerrain.GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, region))
             {
-                for (int i = 0; i < 200; i++)
+                for (int i = 0; i < 300; i++)
                 {
-                    Model tree = new Model("Cecropia");
+                    Model tree = new Model("Palm02");
                     NormalTransform transform = new NormalTransform();
                     tree.Transformation = transform;
                     int randomIndex = RandomHelper.RandomGen.Next(i % availableTriangles.Count, availableTriangles.Count);
@@ -276,7 +276,7 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
             
-            CreateForest();      
+            CreateForest();
 
             //Entities.Add("Grass", new ShapePlacement());
 
@@ -293,7 +293,7 @@ namespace Gaia.SceneGraph
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);
-            //CreateTeams();          
+            CreateTeams();          
             
             //Entities.Add("Light2", new Light(LightType.Directional, new Vector3(0.2797f, 0.344f, 0.43f), Vector3.Up, false));
 

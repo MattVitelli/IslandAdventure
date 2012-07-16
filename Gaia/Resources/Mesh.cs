@@ -527,7 +527,8 @@ namespace Gaia.Resources
                 collisionIndices.Add(new TriangleVertexIndices(renamedVertexIndicesCollision[idx2], renamedVertexIndicesCollision[idx1], renamedVertexIndicesCollision[idx0]));
             }
 
-            this.collisionMesh = new TriangleMesh(collisionVerts, collisionIndices);
+            this.collisionMesh = new TriangleMesh();
+            this.collisionMesh.CreateMesh(collisionVerts, collisionIndices, 0, 0);// new TriangleMesh(collisionVerts, collisionIndices);
 
             List<VertexPNTTI> newVertexData = new List<VertexPNTTI>();
             for (int i = 0; i < parts.Length; i++)

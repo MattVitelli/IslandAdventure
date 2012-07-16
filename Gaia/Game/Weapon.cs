@@ -27,7 +27,7 @@ namespace Gaia.Game
             fpsModel.SetTransform(transform);
         }
 
-        public void OnUpdate(Transform transform)
+        public void OnUpdate()
         {
             fpsModel.OnUpdate();
 

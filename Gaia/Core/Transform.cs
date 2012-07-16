@@ -11,7 +11,7 @@ namespace Gaia.Core
         protected Vector3 rotation;
         protected Vector3 scale;
 
-        protected bool dirtyMatrix;
+        protected bool dirtyMatrix = true;
         protected Matrix worldMatrix;
         protected Matrix objectMatrix;
         protected BoundingBox bounds;
@@ -41,7 +41,7 @@ namespace Gaia.Core
 
         public Vector3 GetPosition()
         {
-            return position;
+            return (body != null)?body.Position:position;
         }
 
         public void SetRotation(Vector3 rotation)
