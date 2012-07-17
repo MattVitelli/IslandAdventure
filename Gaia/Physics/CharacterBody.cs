@@ -28,6 +28,8 @@ namespace Gaia.Physics
 
         float jumpForce = 16;
         public Vector3 DesiredVelocity { get; set; }
+        const int MAX_JUMPS = 2;
+        int jumpsRemaining = MAX_JUMPS;
 
         private bool doJump = false;
 
@@ -43,20 +45,30 @@ namespace Gaia.Physics
 
             if (doJump)
             {
+                bool hasJumped = false;
                 foreach (CollisionInfo info in CollisionSkin.Collisions)
                 {
                     Vector3 N = info.DirToBody0;
                     if (this == info.SkinInfo.Skin1.Owner)
                         Vector3.Negate(ref N, out N);
 
-                    if (Vector3.Dot(N, Orientation.Up) > 0.7f)
+                    if (Vector3.Dot(N, Orientation.Up) > 0.17f)
                     {
                         Vector3 vel = Velocity; vel.Y = jumpForce;
                         Velocity = vel;
+                        jumpsRemaining = MAX_JUMPS;
+                        hasJumped = true;
                         break;
                     }
                 }
+                if (!hasJumped && jumpsRemaining > 0)
+                {
+                    Vector3 vel = Velocity; vel.Y = jumpForce;
+                    Velocity = vel;
+                    jumpsRemaining--;
+                }
             }
+            
 
             foreach (CollisionInfo info in CollisionSkin.Collisions)
             {

@@ -20,11 +20,20 @@ namespace Gaia.SceneGraph.GameEntities
     public class Player : Entity
     {
         const float MAX_HEALTH = 100;
+        const float MAX_ENERGY = 100;
         
         protected bool isEnabled = false;
         protected bool isControllable = false;
 
         protected float health = MAX_HEALTH;
+
+        protected float energy = MAX_ENERGY;
+
+        protected float energyRechargeRate = 15;
+
+        protected float sprintEnergyCost = 20;
+
+        protected float sprintSpeedBoost = 5.5f;
 
         protected bool isCrouching = false;
 
@@ -126,9 +135,9 @@ namespace Gaia.SceneGraph.GameEntities
                 {
                     velocity += transform.Right;
                 }
-                if (InputManager.Inst.IsKeyDown(GameKey.Jump))
+                if (InputManager.Inst.IsKeyDownOnce(GameKey.Jump))
                 {
-                    body.Jump(8.5f);
+                    body.Jump(12.5f);
                 }
                 if (InputManager.Inst.IsKeyDownOnce(GameKey.Crouch))
                 {
@@ -139,13 +148,25 @@ namespace Gaia.SceneGraph.GameEntities
                     SetupPosture(false);
                 }
 
-                body.DesiredVelocity = velocity * 7.5f;
+                float sprintCoeff = 0;
+                if (InputManager.Inst.IsKeyDown(GameKey.Sprint) && velocity.Length() > 0.001f)
+                {
+                    energy -= Time.GameTime.ElapsedTime * sprintEnergyCost;
+                    sprintCoeff = sprintSpeedBoost * MathHelper.Clamp(energy, 0, 1);
+                }
+
+                body.DesiredVelocity = velocity * (7.5f + sprintCoeff);
 
                 if (InputManager.Inst.IsLeftMouseDown())
                 {
                     gun.OnFire(camera.Transformation.GetPosition(), camera.Transformation.GetTransform().Forward);
                 }
             }
+        }
+
+        void UpdateState()
+        {
+            energy += Time.GameTime.ElapsedTime * energyRechargeRate;
         }
 
         public override void OnUpdate()
@@ -158,6 +179,8 @@ namespace Gaia.SceneGraph.GameEntities
             gun.OnUpdate();
 
             UpdateControls();
+
+            UpdateState();
            
             base.OnUpdate();
         }
