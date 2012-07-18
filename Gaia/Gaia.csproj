@@ -103,6 +103,7 @@
     <Compile Include="Core\RadixSorter.cs" />
     <Compile Include="Core\RandomHelper.cs" />
     <Compile Include="Core\Time.cs" />
+    <Compile Include="Core\Tokenizer.cs" />
     <Compile Include="Core\Transform.cs" />
     <Compile Include="Editors\EditorTools\EntityTool.cs" />
     <Compile Include="Editors\EditorTools\LightTool.cs" />
