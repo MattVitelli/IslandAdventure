@@ -145,7 +145,7 @@ namespace Gaia.SceneGraph.GameEntities
                         int currKey = currCluster.Transforms.Keys[j];
                         for (int l = 0; l < currCluster.Transforms[currKey].Count; l++)
                         {
-                            meshSets[currKey].Render(currCluster.Transforms[currKey][l], view);
+                            meshSets[currKey].Render(currCluster.Transforms[currKey][l], view, true);
                         }
                     }
                 }

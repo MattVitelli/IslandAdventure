@@ -82,9 +82,9 @@ namespace Gaia.SceneGraph.GameEntities
         {
             Matrix transform = this.Transformation.GetTransform();
             if (rootNodes != null && rootNodes.Length > 0)
-                mesh.Render(transform, nodes, view);
+                mesh.Render(transform, nodes, view, true);
             else
-                mesh.Render(transform, view);
+                mesh.Render(transform, view, true);
 
             base.OnRender(view);
         }

@@ -9,17 +9,15 @@ namespace Gaia.Animation
     {
         public float Weight = 1.0f;
         AnimationSequence animation;
-        public bool IsCyclic = false;
         SortedList<string, int> rotationFrameIndices = new SortedList<string, int>();
         SortedList<string, int> positionFrameIndices = new SortedList<string, int>();
         float elapsedTime = 0;
-        AnimatedModel model;
+        ViewModel model;
         string name;
-        public AnimationLayer(string name, AnimatedModel model, float weight, bool isCyclic)
+        public AnimationLayer(string name, ViewModel model, float weight)
         {
             this.name = name;
             this.Weight = weight;
-            this.IsCyclic = isCyclic;
             this.animation = ResourceManager.Inst.GetAnimation(name);
             this.model = model;
             InitializeFrames();
@@ -65,7 +63,7 @@ namespace Gaia.Animation
                 int frameIndex = positionFrameIndices[currKey];
                 Vector3 delta = animation.GetKeyFrameParameter(currKey, AnimationType.Position, elapsedTime, ref frameIndex) * Weight;
                 positionFrameIndices[currKey] = frameIndex;
-                nodes[currKey].TranslationDelta += delta;
+                nodes[currKey].Translation += delta;
             }
 
             for (int i = 0; i < rotationFrameIndices.Count; i++)
@@ -74,12 +72,12 @@ namespace Gaia.Animation
                 int frameIndex = rotationFrameIndices[currKey];
                 Vector3 delta = animation.GetKeyFrameParameter(currKey, AnimationType.Rotation, elapsedTime, ref frameIndex) * Weight;
                 rotationFrameIndices[currKey] = frameIndex;
-                nodes[currKey].RotationDelta += delta;
+                nodes[currKey].Rotation += delta;
             }
 
             if (elapsedTime > animation.EndTime)
             {
-                if (IsCyclic)
+                if (animation.IsCyclic)
                 {
                     elapsedTime = 0;
                     ComputeFrameIndices();

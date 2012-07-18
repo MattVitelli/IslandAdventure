@@ -149,7 +149,7 @@ namespace JigLibX.Physics
 
         private const float maxVelMag = 0.5f;
         private const float maxShockVelMag = 0.05f;
-        private const float minVelForProcessing = 0.001f;
+        private const float minVelForProcessing = 0.008f;
         private const float penetrationShockRelaxtionTimestep = 10.0f;
 
         private float targetTime = 0.0f;

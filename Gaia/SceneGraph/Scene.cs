@@ -262,7 +262,7 @@ namespace Gaia.SceneGraph
             MainLight = new Sunlight();
             //MainTerrain = new TerrainVoxel();
             
-            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 1.0f);
+            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 0.5f);
             MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 1024.0f);
             
 
@@ -294,15 +294,15 @@ namespace Gaia.SceneGraph
             */
             AnimatedModel model = new AnimatedModel("CivilianMale");
             
-            model.Transformation.SetScale(Vector3.One * 0.09f);
-            model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*80);
-            model.SetAnimationLayer("CivilianRun", 1.0f, true);
+            model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*68);
+            model.Model.SetAnimationLayer("CivilianPace", 1.0f);
+            model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);
-            //CreateTeams();          
+            CreateTeams();          
             
             //Entities.Add("Light2", new Light(LightType.Directional, new Vector3(0.2797f, 0.344f, 0.43f), Vector3.Up, false));
 

@@ -429,6 +429,8 @@ namespace Gaia.Resources
                         for(int i = 0; i < verts.Length; i++)
                         {
                             verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
+                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, inverseMats[(int)verts[i].Index]);
+                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, inverseMats[(int)verts[i].Index]);
                         }
                         vertexBuffer.SetData<VertexPNTTI>(verts);
                         
@@ -619,62 +621,91 @@ namespace Gaia.Resources
             }
         }
 
-        public void Render(Matrix transform, RenderView view)
+        public void Render(Matrix transform, RenderView view, bool performCulling)
         {
             if (Rendered)
                 GFX.Inst.AddMeshToRender(this);
 
-            BoundingFrustum frustum = view.GetFrustum();
-            Matrix oldMat = frustum.Matrix;
-            frustum.Matrix = transform * view.GetViewProjection();
-            /*
-            if (imposterGeometry != null)
+            if (performCulling)
             {
-                RenderElement srcElem = imposterGeometry.Element;
-                RenderElement element = new RenderElement();
-                element.IndexBuffer = srcElem.IndexBuffer;
-                element.PrimitiveCount = srcElem.PrimitiveCount;
-                element.StartVertex = srcElem.StartVertex;
-                element.VertexBuffer = srcElem.VertexBuffer;
-                element.VertexCount = srcElem.VertexCount;
-                element.VertexDec = srcElem.VertexDec;
-                element.VertexStride = srcElem.VertexStride;
-                element.Transform = new Matrix[1] { transform };
-                view.AddElement(imposterGeometry.ImposterMaterial, element);
+                BoundingFrustum frustum = view.GetFrustum();
+                Matrix oldMat = frustum.Matrix;
+                frustum.Matrix = transform * view.GetViewProjection();
+                /*
+                if (imposterGeometry != null)
+                {
+                    RenderElement srcElem = imposterGeometry.Element;
+                    RenderElement element = new RenderElement();
+                    element.IndexBuffer = srcElem.IndexBuffer;
+                    element.PrimitiveCount = srcElem.PrimitiveCount;
+                    element.StartVertex = srcElem.StartVertex;
+                    element.VertexBuffer = srcElem.VertexBuffer;
+                    element.VertexCount = srcElem.VertexCount;
+                    element.VertexDec = srcElem.VertexDec;
+                    element.VertexStride = srcElem.VertexStride;
+                    element.Transform = new Matrix[1] { transform };
+                    view.AddElement(imposterGeometry.ImposterMaterial, element);
+                }
+                */
+                //else
+                {
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                        {
+                            if (!parts[i].cachedTransforms.ContainsKey(view))
+                                parts[i].cachedTransforms.Add(view, new List<Matrix>());
+                            parts[i].cachedTransforms[view].Add(transform);
+                            /*
+                            RenderElement srcElem = parts[i].renderElement;
+                            RenderElement element = srcElem;
+                            element.Transform = new Matrix[1] { transform };
+                            view.AddElement(parts[i].material, element);
+                            */
+                        }
+                    }
+                }
+                frustum.Matrix = oldMat;
             }
-            */
-            //else
+            else
             {
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (!parts[i].cachedTransforms.ContainsKey(view))
+                        parts[i].cachedTransforms.Add(view, new List<Matrix>());
+                    parts[i].cachedTransforms[view].Add(transform);
+                }
+            }
+        }
+
+        public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view, bool performCulling)
+        {
+            if (performCulling)
+            {
+                BoundingFrustum frustum = view.GetFrustum();
+                Matrix oldMat = frustum.Matrix;
+                frustum.Matrix = transform * view.GetViewProjection();
+                Matrix[] transforms = new Matrix[nodes.Length];
+                for (int i = 0; i < nodes.Length; i++)
+                    transforms[i] = animNodes[nodes[i].Name].Transform;
                 for (int i = 0; i < parts.Length; i++)
                 {
                     if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
                     {
-                        if (!parts[i].cachedTransforms.ContainsKey(view))
-                            parts[i].cachedTransforms.Add(view, new List<Matrix>());
-                        parts[i].cachedTransforms[view].Add(transform);
-                        /*
-                        RenderElement srcElem = parts[i].renderElement;
-                        RenderElement element = srcElem;
-                        element.Transform = new Matrix[1] { transform };
+                        RenderElement element = parts[i].renderElement;
+                        element.Transform = transforms;
+                        element.IsAnimated = true;
                         view.AddElement(parts[i].material, element);
-                        */
                     }
                 }
+                frustum.Matrix = oldMat;
             }
-            frustum.Matrix = oldMat;
-        }
-
-        public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view)
-        {
-            BoundingFrustum frustum = view.GetFrustum();
-            Matrix oldMat = frustum.Matrix;
-            frustum.Matrix = transform * view.GetViewProjection();
-            Matrix[] transforms = new Matrix[nodes.Length];
-            for (int i = 0; i < nodes.Length; i++)
-                transforms[i] = animNodes[nodes[i].Name].Transform;
-            for (int i = 0; i < parts.Length; i++)
+            else
             {
-                if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                Matrix[] transforms = new Matrix[nodes.Length];
+                for (int i = 0; i < nodes.Length; i++)
+                    transforms[i] = animNodes[nodes[i].Name].Transform;
+                for (int i = 0; i < parts.Length; i++)
                 {
                     RenderElement element = parts[i].renderElement;
                     element.Transform = transforms;
@@ -682,7 +713,6 @@ namespace Gaia.Resources
                     view.AddElement(parts[i].material, element);
                 }
             }
-            frustum.Matrix = oldMat;
         }
 
         void CreateInstanceData()
@@ -953,7 +983,7 @@ namespace Gaia.Resources
             Matrix deltaTransform = Matrix.CreateRotationX(RotationDelta.X) * Matrix.CreateRotationY(RotationDelta.Y) * Matrix.CreateRotationZ(RotationDelta.Z);
             deltaTransform.Translation = TranslationDelta;
 
-            Transform = deltaTransform * tempTransform * parentTransform;
+            Transform = tempTransform * parentTransform;
             for (int i = 0; i < children.Count; i++)
                 children[i].ApplyTransform(ref Transform);
         }

@@ -25,21 +25,30 @@ namespace Gaia.Game
             this.scene = scene;
             this.fpsModel = new ViewModel(modelName);
             fpsModel.SetTransform(transform);
+            Matrix weaponTransform = Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.PiOver2);
+            fpsModel.SetCustomMatrix(weaponTransform);
+            fpsModel.SetAnimationLayer("Pistol_Idle", 1);
         }
 
         public void OnUpdate()
         {
             fpsModel.OnUpdate();
 
-            if(coolDownTimeRemaining > 0)
+            if (coolDownTimeRemaining > 0)
+            {
                 coolDownTimeRemaining -= Time.GameTime.ElapsedTime;
+            }
+            else
+                fpsModel.SetAnimationLayer("Pistol_Idle", 1.0f);
         }
 
         public void OnFire(Vector3 muzzlePosition, Vector3 muzzleDir)
         {
             if (coolDownTimeRemaining <= 0)
             {
-                coolDownTimeRemaining = 0.18f;
+                fpsModel.SetAnimationLayer("Pistol_Idle", 0.0f);
+                fpsModel.SetAnimationLayer("Pistol_Fire", 1.0f);
+                coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("Pistol_Fire").EndTime;
                 Vector3 ray = Vector3.Zero;
                 float dist;
                 CollisionSkin skin;
@@ -71,7 +80,7 @@ namespace Gaia.Game
 
         public void OnRender(RenderView view)
         {
-            fpsModel.OnRender(view);
+            fpsModel.OnRender(view, false);
         }
     }
 }

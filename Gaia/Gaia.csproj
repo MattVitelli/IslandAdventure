@@ -175,6 +175,7 @@
     <Compile Include="Resources\SoundEngine.cs" />
     <Compile Include="Resources\TerrainClimate.cs" />
     <Compile Include="Resources\TextureResource.cs" />
+    <Compile Include="SceneGraph\GameEntities\Actor.cs" />
     <Compile Include="SceneGraph\GameEntities\AnimatedModel.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
     <Compile Include="SceneGraph\GameEntities\Cloud.cs" />

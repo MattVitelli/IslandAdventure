@@ -6,73 +6,31 @@ using Microsoft.Xna.Framework;
 
 namespace Gaia.SceneGraph.GameEntities
 {
-    public class AnimatedModel : Model
+    public class AnimatedModel : Entity
     {
-        protected SortedList<string, AnimationLayer> animationLayers = new SortedList<string, AnimationLayer>();
-        protected SortedList<string, Vector3> defaultTranslations = new SortedList<string, Vector3>();
-        protected SortedList<string, Vector3> defaultRotations = new SortedList<string, Vector3>();
+        public ViewModel Model;
 
         public AnimatedModel(string name)
-            : base(name)
         {
-
+            Model = new ViewModel(name);
         }
 
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                string currKey = nodes.Keys[i];
-                defaultTranslations.Add(currKey, nodes[currKey].TranslationDelta);
-                defaultRotations.Add(currKey, nodes[currKey].RotationDelta);
-            }
-        }
-        public void SetAnimationLayer(string name, float weight, bool isCyclic)
-        {
-            if (!animationLayers.ContainsKey(name))
-                animationLayers.Add(name, new AnimationLayer(name, this, weight, isCyclic));
-            else
-            {
-                animationLayers[name].IsCyclic = isCyclic;
-                animationLayers[name].Weight = weight;
-            }
-        }
-
-        public void SetAnimationLayer(string name, float weight)
-        {
-            SetAnimationLayer(name, weight, false);
-        }
-
-        public void RemoveAnimationLayer(string name)
-        {
-            if (animationLayers.ContainsKey(name))
-                animationLayers.Remove(name);
-        }
-
-        protected void UpdateAnimation(float timeDT)
-        {
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                string currKey = nodes.Keys[i];
-                nodes[currKey].TranslationDelta = defaultTranslations[currKey];
-                nodes[currKey].RotationDelta = defaultRotations[currKey];
-            }
-
-            for (int i = 0; i < animationLayers.Count; i++)
-            {
-                animationLayers.Values[i].UpdateAnimation(timeDT, this.nodes);
-            }
+            Model.SetTransform(this.Transformation);
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
-            UpdateAnimation(Time.GameTime.ElapsedTime);
-            Matrix transform = this.Transformation.GetTransform();
-            for (int i = 0; i < rootNodes.Length; i++)
-                rootNodes[i].ApplyTransform(ref transform);
+            Model.OnUpdate();
         }
 
+        public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
+        {
+            base.OnRender(view);
+            Model.OnRender(view, true);
+        }
     }
 }
