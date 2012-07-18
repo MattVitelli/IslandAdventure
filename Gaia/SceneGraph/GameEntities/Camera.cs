@@ -93,7 +93,7 @@ namespace Gaia.SceneGraph.GameEntities
             }
             else
                 transform = Matrix.CreateLookAt(this.Transformation.GetPosition(), this.target, Vector3.Up);
-            /*
+            
             Vector3 moveDir = Vector3.Zero;
             if (InputManager.Inst.IsKeyDown(GameKey.MoveFoward))
                 moveDir += transform.Forward * forwardSpeed * (Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveFoward) / 3.0f));
@@ -106,7 +106,7 @@ namespace Gaia.SceneGraph.GameEntities
                 moveDir -= transform.Right * strafeSpeed * Math.Min(1.0f, 0.2f + InputManager.Inst.GetPressTime(GameKey.MoveLeft) / 1.25f);
 
             this.Transformation.SetPosition(this.Transformation.GetPosition() + moveDir * Time.GameTime.ElapsedTime);
-            */
+            
         }
 
         public override void OnUpdate()

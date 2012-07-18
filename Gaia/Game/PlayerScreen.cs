@@ -149,7 +149,7 @@ namespace Gaia.Game
             {
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
-                //PerformInteraction();
+                PerformInteraction();
             }
 
             Entity testEnt = scene.FindEntity("scene_geom2");

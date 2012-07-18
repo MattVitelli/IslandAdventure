@@ -13,6 +13,7 @@ namespace Gaia.Resources
         Material,
         Particle,
         Mesh,
+        Animation,
         SoundEffect,
         Team,
         TerrainClimate,
@@ -44,6 +45,9 @@ namespace Gaia.Resources
         {
             ResourceTypeDefs = new Type[(int)ResourceTypes.Count];
             ResourceTypeTokens = new string[(int)ResourceTypes.Count];
+
+            ResourceTypeDefs[(int)ResourceTypes.Animation] = typeof(AnimationSequence);
+            ResourceTypeTokens[(int)ResourceTypes.Animation] = "Animation";
 
             ResourceTypeDefs[(int)ResourceTypes.Material] = typeof(Material);
             ResourceTypeTokens[(int)ResourceTypes.Material] = "Material";
@@ -145,6 +149,11 @@ namespace Gaia.Resources
         public Mesh GetMesh(string key)
         {
             return (Mesh)GetResource(key, ResourceTypes.Mesh);
+        }
+
+        public AnimationSequence GetAnimation(string key)
+        {
+            return (AnimationSequence)GetResource(key, ResourceTypes.Animation);
         }
 
         public TeamResource GetTeam(string key)

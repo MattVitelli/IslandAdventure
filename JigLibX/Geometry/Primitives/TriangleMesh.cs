@@ -46,7 +46,7 @@ namespace JigLibX.Geometry
             }
             else
             {
-                box = octree.BoundingBox;
+                box = octree.BoundingBox.GetBoundingBox();
             }
         }
 
@@ -83,12 +83,7 @@ namespace JigLibX.Geometry
                 return invTransform;
             }
         }
-        /*
-        public KDTreeTriangles KDTree
-        {
-            get { return this.kdTree; }
-        }
-        */
+
         public int GetNumTriangles()
         {
             return (octree == null)?kdTree.NumTriangles:octree.NumTriangles;

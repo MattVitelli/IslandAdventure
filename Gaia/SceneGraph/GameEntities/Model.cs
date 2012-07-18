@@ -68,7 +68,16 @@ namespace Gaia.SceneGraph.GameEntities
                 collision.SetNewTransform(ref collisionTransform);
             }
         }
-
+        /*
+        public void UpdateAnimation()
+        {
+            Matrix transform = this.Transformation.GetTransform();
+            for (int i = 0; i < rootNodes.Length; i++)
+            {
+                rootNodes[i].ApplyTransform(ref transform);
+            }
+        }
+        */
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             Matrix transform = this.Transformation.GetTransform();

@@ -92,6 +92,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\AnimationLayer.cs" />
     <Compile Include="Core\ByteConverter.cs" />
     <Compile Include="Core\NormalTransform.cs" />
     <Compile Include="Core\JitterConverter.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="Rendering\RenderElementManagers\TransparentElementManager.cs" />
     <Compile Include="Rendering\Simulators\ParticleSimulator.cs" />
     <Compile Include="Rendering\Simulators\PerlinNoiseSimulator.cs" />
+    <Compile Include="Resources\AnimationSequence.cs" />
     <Compile Include="Resources\TerrainClimateVoxels.cs" />
     <Compile Include="Resources\ItemDatablock.cs" />
     <Compile Include="Resources\QuestResource.cs" />
@@ -172,6 +174,7 @@
     <Compile Include="Resources\SoundEngine.cs" />
     <Compile Include="Resources\TerrainClimate.cs" />
     <Compile Include="Resources\TextureResource.cs" />
+    <Compile Include="SceneGraph\GameEntities\AnimatedModel.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
     <Compile Include="SceneGraph\GameEntities\Cloud.cs" />
     <Compile Include="SceneGraph\GameEntities\ClutterPlacement.cs" />

@@ -100,9 +100,10 @@ namespace Gaia.SceneGraph.GameEntities
         {
             collision = new CollisionSkin(null);
             Array2D field = new Array2D(width, depth);
+            
             Matrix transform = Transformation.GetTransform();
             Vector3 center = Vector3.Transform(Vector3.Zero, transform);
-            Vector2 invRes = (Vector2.One / new Vector2(width, depth)) * 2.0f - Vector2.One;
+            Vector2 invRes = (Vector2.One / new Vector2(width, depth)) * 2;// *2.0f - Vector2.One;
             Vector3 gridSize = Vector3.Transform(new Vector3(invRes.X, 0, invRes.Y), transform);
             for (int x = 0; x < width; x++)
             {
@@ -113,7 +114,7 @@ namespace Gaia.SceneGraph.GameEntities
                 }
             }
 
-            collision.AddPrimitive(new Heightmap(field, width/2, depth/2, gridSize.X, gridSize.Z), new MaterialProperties(0.1f, 0.02f, 0.9f));
+            collision.AddPrimitive(new Heightmap(field, 0, 0, gridSize.X, gridSize.Z), new MaterialProperties(0.1f, 0.02f, 0.9f));
             scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision);
         }
 
@@ -233,7 +234,8 @@ namespace Gaia.SceneGraph.GameEntities
             Vector3 v1;
             Vector3 v2;
 
-            center = new Vector3((float)x, GetHeightValue(x, z), (float)z);
+            Vector3 invScale = new Vector3(1.0f / (float)width, 1.0f, 1.0f / (float)depth);
+            center = new Vector3(x, GetHeightValue(x, z), z)*invScale;
 
             if (x > 0)
             {
@@ -257,8 +259,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceAbove && spaceLeft)
             {
-                p1 = new Vector3(x - 1, GetHeightValue(x - 1, z), z);
-                p2 = new Vector3(x, GetHeightValue(x, z - 1), z - 1);
+                p1 = new Vector3(x - 1, GetHeightValue(x - 1, z), z) * invScale;
+                p2 = new Vector3(x, GetHeightValue(x, z - 1), z - 1) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -271,8 +273,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceAbove && spaceRight)
             {
-                p1 = new Vector3(x, GetHeightValue(x, z - 1), z - 1);
-                p2 = new Vector3(x + 1, GetHeightValue(x + 1, z), z);
+                p1 = new Vector3(x, GetHeightValue(x, z - 1), z - 1) * invScale;
+                p2 = new Vector3(x + 1, GetHeightValue(x + 1, z), z) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -285,8 +287,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceBelow && spaceRight)
             {
-                p1 = new Vector3(x + 1, GetHeightValue(x + 1, z), z);
-                p2 = new Vector3(x, GetHeightValue(x, z + 1), z + 1);
+                p1 = new Vector3(x + 1, GetHeightValue(x + 1, z), z) * invScale;
+                p2 = new Vector3(x, GetHeightValue(x, z + 1), z + 1) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -299,8 +301,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceBelow && spaceLeft)
             {
-                p1 = new Vector3(x, GetHeightValue(x, z + 1), z + 1);
-                p2 = new Vector3(x - 1, GetHeightValue(x - 1, z), z);
+                p1 = new Vector3(x, GetHeightValue(x, z + 1), z + 1) * invScale;
+                p2 = new Vector3(x - 1, GetHeightValue(x - 1, z), z) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -337,7 +339,8 @@ namespace Gaia.SceneGraph.GameEntities
             Vector2 s;
             Vector2 w;
             Vector2 centerUV = new Vector2((float)x, (float)z);
-            center = new Vector3((float)x, GetHeightValue(x, z), (float)z);
+            Vector3 invScale = new Vector3(1.0f / (float)width, 1.0f, 1.0f / (float)depth);
+            center = new Vector3((float)x, GetHeightValue(x, z), (float)z) * invScale;
 
             if (x > 0)
             {
@@ -361,8 +364,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceAbove && spaceLeft)
             {
-                p1 = new Vector3(x - 1, GetHeightValue(x - 1, z), z);
-                p2 = new Vector3(x, GetHeightValue(x, z - 1), z - 1);
+                p1 = new Vector3(x - 1, GetHeightValue(x - 1, z), z) * invScale;
+                p2 = new Vector3(x, GetHeightValue(x, z - 1), z - 1) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -381,8 +384,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceAbove && spaceRight)
             {
-                p1 = new Vector3(x, GetHeightValue(x, z - 1), z - 1);
-                p2 = new Vector3(x + 1, GetHeightValue(x + 1, z), z);
+                p1 = new Vector3(x, GetHeightValue(x, z - 1), z - 1) * invScale;
+                p2 = new Vector3(x + 1, GetHeightValue(x + 1, z), z) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -401,8 +404,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceBelow && spaceRight)
             {
-                p1 = new Vector3(x + 1, GetHeightValue(x + 1, z), z);
-                p2 = new Vector3(x, GetHeightValue(x, z + 1), z + 1);
+                p1 = new Vector3(x + 1, GetHeightValue(x + 1, z), z) * invScale;
+                p2 = new Vector3(x, GetHeightValue(x, z + 1), z + 1) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;
@@ -421,8 +424,8 @@ namespace Gaia.SceneGraph.GameEntities
 
             if (spaceBelow && spaceLeft)
             {
-                p1 = new Vector3(x, GetHeightValue(x, z + 1), z + 1);
-                p2 = new Vector3(x - 1, GetHeightValue(x - 1, z), z);
+                p1 = new Vector3(x, GetHeightValue(x, z + 1), z + 1) * invScale;
+                p2 = new Vector3(x - 1, GetHeightValue(x - 1, z), z) * invScale;
 
                 v1 = p1 - center;
                 v2 = p2 - center;

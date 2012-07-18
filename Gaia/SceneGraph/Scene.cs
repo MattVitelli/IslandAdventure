@@ -166,7 +166,7 @@ namespace Gaia.SceneGraph
         void InitializePhysics()
         {
             world = new PhysicsSystem();
-            //physicSystem.CollisionSystem = new CollisionSystemGrid(32, 32, 32, 30, 30, 30);
+            //world.CollisionSystem = new CollisionSystemGrid(64, 64, 64, 5, 5, 5);
             //physicSystem.CollisionSystem = new CollisionSystemBrute();
             world.CollisionSystem = new CollisionSystemSAP();
 
@@ -174,9 +174,11 @@ namespace Gaia.SceneGraph
             world.SolverType = PhysicsSystem.Solver.Normal;
             world.CollisionSystem.UseSweepTests = true;
             world.Gravity = new Vector3(0, -10, 0);//PhysicsHelper.GravityEarth, 0);
+            
             world.NumCollisionIterations = 16;
             world.NumContactIterations = 16;
             world.NumPenetrationRelaxtionTimesteps = 15;
+            
         }
 
         public void ResetScene()
@@ -258,11 +260,11 @@ namespace Gaia.SceneGraph
 
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
-            MainTerrain = new TerrainVoxel();
-            /*
-            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 0.5f);
-            MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 512.0f);
-            */
+            //MainTerrain = new TerrainVoxel();
+            
+            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 1.0f);
+            MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 1024.0f);
+            
 
             MainPlayer = new Camera();
             
@@ -276,7 +278,7 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
             
-            CreateForest();
+            //CreateForest();
 
             //Entities.Add("Grass", new ShapePlacement());
 
@@ -290,10 +292,17 @@ namespace Gaia.SceneGraph
             testGeom2.Transformation.SetPosition(Vector3.Up * 21.0f);
             Entities.Add("scene_geom2", testGeom2);
             */
+            AnimatedModel model = new AnimatedModel("CivilianMale");
+            
+            model.Transformation.SetScale(Vector3.One * 0.09f);
+            model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*80);
+            model.SetAnimationLayer("CivilianRun", 1.0f, true);
+            //model.UpdateAnimation();
+            Entities.Add("TestCharacter", model);
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);
-            CreateTeams();          
+            //CreateTeams();          
             
             //Entities.Add("Light2", new Light(LightType.Directional, new Vector3(0.2797f, 0.344f, 0.43f), Vector3.Up, false));
 
