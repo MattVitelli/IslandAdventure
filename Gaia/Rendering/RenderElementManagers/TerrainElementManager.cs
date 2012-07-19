@@ -37,8 +37,8 @@ namespace Gaia.Rendering
             mainRenderView = renderView;
             terrainShader = ResourceManager.Inst.GetShader("TerrainHMShader");
             terrainBlendShader = ResourceManager.Inst.GetShader("TerrainBlend");
-            BlendAlbedo = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width, renderView.ColorMap.Height, 1, SurfaceFormat.Color);
-            BlendNormal = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width, renderView.ColorMap.Height, 1, SurfaceFormat.Color);
+            BlendAlbedo = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width/2, renderView.ColorMap.Height/2, 1, SurfaceFormat.Color);
+            BlendNormal = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width/2, renderView.ColorMap.Height/2, 1, SurfaceFormat.Color);
             DepthStencil = new DepthStencilBuffer(GFX.Device, renderView.ColorMap.Width, renderView.ColorMap.Height, GFX.Device.DepthStencilBuffer.Format);
 
             Color[] whiteColor = new Color[1] { Color.White };
@@ -72,17 +72,11 @@ namespace Gaia.Rendering
             }
         }
 
-        void BlendElement(TerrainClimate climate, TerrainRenderElement element)
+        void BlendElement(TerrainClimate climate, TerrainRenderElement element, bool performAlphaBlend)
         {
-            GFX.Device.RenderState.AlphaBlendEnable = false;
-            for (int i = 0; i < element.BlendMaps.Length; i++)
+            int startIndex = (performAlphaBlend) ? 1 : 0;
+            for (int i = startIndex; i < element.BlendMaps.Length; i++)
             {
-                if (i > 0)
-                {
-                    GFX.Device.RenderState.AlphaBlendEnable = true;
-                    GFX.Device.RenderState.SourceBlend = Blend.One;
-                    GFX.Device.RenderState.DestinationBlend = Blend.One;
-                }
                 int offset = i * 4;
                 for (int j = 0; j < 4; j++)
                 {
@@ -99,8 +93,9 @@ namespace Gaia.Rendering
                 }
                 GFX.Device.Textures[8] = element.BlendMaps[i];
                 DrawElement(element);
+                if (!performAlphaBlend)
+                    break;
             }
-            GFX.Device.RenderState.AlphaBlendEnable = false;
         }
 
         public void PerformBlending()
@@ -122,10 +117,27 @@ namespace Gaia.Rendering
             for (int i = 0; i < Elements.Count; i++)
             {
                 TerrainClimate currClimate = Elements.Keys[i];
-                while (Elements[currClimate].Count > 0)
+                for (int j = 0; j < Elements[currClimate].Count; j++)
                 {
                     TerrainRenderElement terrElement = Elements[currClimate].Dequeue();
-                    BlendElement(currClimate, terrElement);
+                    BlendElement(currClimate, terrElement, false);
+                    Elements[currClimate].Enqueue(terrElement);
+                }
+            }
+
+            //Now the blend pass
+
+            GFX.Device.RenderState.AlphaBlendEnable = true;
+            GFX.Device.RenderState.SourceBlend = Blend.One;
+            GFX.Device.RenderState.DestinationBlend = Blend.One;
+
+            for (int i = 0; i < Elements.Count; i++)
+            {
+                TerrainClimate currClimate = Elements.Keys[i];
+                for (int j = 0; j < Elements[currClimate].Count; j++)
+                {
+                    TerrainRenderElement terrElement = Elements[currClimate].Dequeue();
+                    BlendElement(currClimate, terrElement, true);
                 }
             }
 
@@ -145,6 +157,8 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;
 
             terrainShader.SetupShader();
+            GFX.Inst.SetTextureFilter(0, TextureFilter.Linear);
+            GFX.Inst.SetTextureFilter(1, TextureFilter.Linear);
             GFX.Device.Textures[0] = BlendAlbedo.GetTexture();
             GFX.Device.Textures[1] = BlendNormal.GetTexture();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(BlendAlbedo.Width, BlendAlbedo.Height));

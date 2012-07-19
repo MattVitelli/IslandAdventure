@@ -96,7 +96,7 @@ namespace Gaia.Core
             }
             else
             {
-                worldMatrix = JigLibXConverter.ToXNA(body);
+                worldMatrix = JigLibXConverter.ToXNA(body, this);
                 dirtyMatrix = body.IsActive;
                 position = body.Position;
             }

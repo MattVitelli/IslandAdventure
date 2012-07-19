@@ -26,5 +26,33 @@ namespace Gaia.Core
             srcBounds.Max = Vector3.Transform(srcBounds.Max, transform);
             return srcBounds;
         }
+
+        public static Matrix Invert3x3(Matrix matrix)
+        {
+            Matrix destMat = Matrix.Identity;
+
+            destMat.M11 = (matrix.M22 * matrix.M33 - matrix.M32 * matrix.M23);
+            destMat.M21 = (matrix.M31 * matrix.M23 - matrix.M21 * matrix.M33);
+            destMat.M31 = (matrix.M21 * matrix.M32 - matrix.M31 * matrix.M22);
+            destMat.M12 = (matrix.M32 * matrix.M13 - matrix.M12 * matrix.M33);
+            destMat.M22 = (matrix.M11 * matrix.M33 - matrix.M31 * matrix.M13);
+            destMat.M32 = (matrix.M31 * matrix.M12 - matrix.M11 * matrix.M32);
+            destMat.M13 = (matrix.M12 * matrix.M23 - matrix.M22 * matrix.M13);
+            destMat.M23 = (matrix.M13 * matrix.M21 - matrix.M11 * matrix.M23);
+            destMat.M33 = (matrix.M11 * matrix.M22 - matrix.M21 * matrix.M12);
+            double invDet = 1.0 / (matrix.M11 * destMat.M11 + matrix.M21 * destMat.M12 + matrix.M31 * destMat.M13);
+
+            destMat.M11 = (float)(destMat.M11 * invDet);
+            destMat.M12 = (float)(destMat.M12 * invDet);
+            destMat.M13 = (float)(destMat.M13 * invDet);
+            destMat.M21 = (float)(destMat.M21 * invDet);
+            destMat.M22 = (float)(destMat.M22 * invDet);
+            destMat.M23 = (float)(destMat.M23 * invDet);
+            destMat.M31 = (float)(destMat.M31 * invDet);
+            destMat.M32 = (float)(destMat.M32 * invDet);
+            destMat.M33 = (float)(destMat.M33 * invDet);
+
+            return destMat;
+        }
     }
 }

@@ -85,7 +85,6 @@ namespace Gaia.SceneGraph.GameEntities
             this.heightmapFileName = heightmapFilename;
             heightRange = new Vector2(minHeight, maxHeight);
             LoadHeightFromTexture();
-            BuildTerrain();
         }
 
         public Texture2D[] GetBlendMaps()
@@ -103,18 +102,18 @@ namespace Gaia.SceneGraph.GameEntities
             
             Matrix transform = Transformation.GetTransform();
             Vector3 center = Vector3.Transform(Vector3.Zero, transform);
-            Vector2 invRes = (Vector2.One / new Vector2(width, depth)) * 2;// *2.0f - Vector2.One;
+            Vector2 invRes = (new Vector2(2,2) / new Vector2(width, depth));// *2.0f - Vector2.One;
             Vector3 gridSize = Vector3.Transform(new Vector3(invRes.X, 0, invRes.Y), transform);
             for (int x = 0; x < width; x++)
             {
                 for (int z = 0; z < depth; z++)
                 {
-                    Vector3 transformed = Vector3.Transform(new Vector3(0, heightValues[x + z * width], 0), transform);
+                    Vector3 transformed = Vector3.Transform(new Vector3(0, GetHeightValue(x,z), 0), transform);
                     field.SetAt(x, z, transformed.Y);
                 }
             }
 
-            collision.AddPrimitive(new Heightmap(field, 0, 0, gridSize.X, gridSize.Z), new MaterialProperties(0.1f, 0.02f, 0.9f));
+            collision.AddPrimitive(new Heightmap(field, center.X, center.Z, gridSize.X, gridSize.Z), new MaterialProperties(0.1f, 0.02f, 0.9f));
             scene.GetPhysicsEngine().CollisionSystem.AddCollisionSkin(collision);
         }
 
@@ -122,6 +121,8 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
 
+
+            BuildTerrain();
             clutter = new ClutterPlacement(this, scene.MainCamera);
 
             Matrix transform = this.Transformation.GetTransform();

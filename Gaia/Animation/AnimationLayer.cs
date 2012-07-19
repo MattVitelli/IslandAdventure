@@ -9,8 +9,7 @@ namespace Gaia.Animation
     {
         public float Weight = 1.0f;
         AnimationSequence animation;
-        SortedList<string, int> rotationFrameIndices = new SortedList<string, int>();
-        SortedList<string, int> positionFrameIndices = new SortedList<string, int>();
+        SortedList<string, int> frameIndices = new SortedList<string, int>();
         float elapsedTime = 0;
         ViewModel model;
         string name;
@@ -25,26 +24,17 @@ namespace Gaia.Animation
 
         void InitializeFrames()
         {
-            string[] positionKeys = animation.GetAnimationKeys(AnimationType.Position);
-            string[] rotationKeys = animation.GetAnimationKeys(AnimationType.Rotation);
-            for (int i = 0; i < positionKeys.Length; i++)
-                positionFrameIndices.Add(positionKeys[i], 0);
-            for (int i = 0; i < rotationKeys.Length; i++)
-                rotationFrameIndices.Add(rotationKeys[i], 0);
+            string[] keys = animation.GetAnimationKeys();
+            for (int i = 0; i < keys.Length; i++)
+                frameIndices.Add(keys[i], 0);
         }
 
         void ComputeFrameIndices()
         {
-            for (int i = 0; i < positionFrameIndices.Count; i++)
+            for (int i = 0; i < frameIndices.Count; i++)
             {
-                string currKey = positionFrameIndices.Keys[i];
-                positionFrameIndices[currKey] = animation.ComputeFrameIndex(currKey, AnimationType.Position, elapsedTime);
-            }
-
-            for (int i = 0; i < rotationFrameIndices.Count; i++)
-            {
-                string currKey = rotationFrameIndices.Keys[i];
-                rotationFrameIndices[currKey] = animation.ComputeFrameIndex(currKey, AnimationType.Rotation, elapsedTime);
+                string currKey = frameIndices.Keys[i];
+                frameIndices[currKey] = animation.ComputeFrameIndex(currKey, elapsedTime);
             }
         }
 
@@ -57,22 +47,16 @@ namespace Gaia.Animation
         public void UpdateAnimation(float timeDT, SortedList<string, AnimationNode> nodes)
         {
             elapsedTime += timeDT;
-            for(int i = 0; i < positionFrameIndices.Count; i++)
+            for(int i = 0; i < frameIndices.Count; i++)
             {
-                string currKey = positionFrameIndices.Keys[i];
-                int frameIndex = positionFrameIndices[currKey];
-                Vector3 delta = animation.GetKeyFrameParameter(currKey, AnimationType.Position, elapsedTime, ref frameIndex) * Weight;
-                positionFrameIndices[currKey] = frameIndex;
-                nodes[currKey].Translation += delta;
-            }
-
-            for (int i = 0; i < rotationFrameIndices.Count; i++)
-            {
-                string currKey = rotationFrameIndices.Keys[i];
-                int frameIndex = rotationFrameIndices[currKey];
-                Vector3 delta = animation.GetKeyFrameParameter(currKey, AnimationType.Rotation, elapsedTime, ref frameIndex) * Weight;
-                rotationFrameIndices[currKey] = frameIndex;
-                nodes[currKey].Rotation += delta;
+                string currKey = frameIndices.Keys[i];
+                int frameIndex = frameIndices[currKey];
+                Vector3 posDelta = Vector3.Zero;
+                Vector3 rotDelta = Vector3.Zero;
+                animation.GetKeyFrameParameter(currKey, out posDelta, out rotDelta, elapsedTime, ref frameIndex);
+                frameIndices[currKey] = frameIndex;
+                nodes[currKey].Translation += posDelta * Weight;
+                nodes[currKey].Rotation += rotDelta * Weight;
             }
 
             if (elapsedTime > animation.EndTime)

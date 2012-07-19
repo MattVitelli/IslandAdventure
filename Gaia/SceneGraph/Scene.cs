@@ -19,6 +19,7 @@ namespace Gaia.SceneGraph
 {
     public class Scene
     {
+        public List<Actor> Actors = new List<Actor>();
         public SortedList<string, Entity> Entities = new SortedList<string, Entity>();
         PriorityQueue<int, RenderView> RenderViews = new PriorityQueue<int, RenderView>();
 
@@ -117,6 +118,16 @@ namespace Gaia.SceneGraph
             }
         }
 
+        public void AddActor(Actor entity)
+        {
+            Actors.Add(entity);
+        }
+
+        public void RemoveActor(Actor entity)
+        {
+            Actors.Remove(entity);
+        }
+
         public void AddRenderView(RenderView view)
         {
             RenderViews.Enqueue(view, (int)view.GetRenderType());
@@ -171,13 +182,13 @@ namespace Gaia.SceneGraph
             world.CollisionSystem = new CollisionSystemSAP();
 
             world.EnableFreezing = true;
-            world.SolverType = PhysicsSystem.Solver.Normal;
+            world.SolverType = PhysicsSystem.Solver.Combined;
             world.CollisionSystem.UseSweepTests = true;
             world.Gravity = new Vector3(0, -10, 0);//PhysicsHelper.GravityEarth, 0);
             
             world.NumCollisionIterations = 16;
             world.NumContactIterations = 16;
-            world.NumPenetrationRelaxtionTimesteps = 15;
+            world.NumPenetrationRelaxtionTimesteps = 30;
             
         }
 
@@ -261,9 +272,9 @@ namespace Gaia.SceneGraph
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
             //MainTerrain = new TerrainVoxel();
-            
-            MainTerrain = new TerrainHeightmap("Textures/HeightMap2.dds", 0, 0.5f);
-            MainTerrain.Transformation.SetScale(new Vector3(1, 0.5f, 1) * 1024.0f);
+
+            MainTerrain = new TerrainHeightmap("Textures/level1_hm.png", 0, 0.5f);
+            MainTerrain.Transformation.SetScale(new Vector3(1, 1.0f, 1) * 512.0f);
             
 
             MainPlayer = new Camera();
@@ -292,13 +303,25 @@ namespace Gaia.SceneGraph
             testGeom2.Transformation.SetPosition(Vector3.Up * 21.0f);
             Entities.Add("scene_geom2", testGeom2);
             */
-            AnimatedModel model = new AnimatedModel("CivilianMale");
+            AnimatedModel model = new AnimatedModel("Allosaurus");
             
             model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*68);
-            model.Model.SetAnimationLayer("CivilianPace", 1.0f);
+            model.Model.SetAnimationLayer("AllosaurusIdle", 1.0f);
             model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
+
+            AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
+
+            model2.Transformation.SetPosition(Vector3.Forward * -5 + Vector3.Up * 62);
+            model2.Model.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
+            model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
+            //model.UpdateAnimation();
+            Entities.Add("TestCharacter2", model2);
+
+            Raptor raptor = new Raptor();
+            Entities.Add("Raptor", raptor);
+
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);
             Entities.Add("weaponCrate", weaponCrate);

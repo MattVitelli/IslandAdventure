@@ -386,9 +386,9 @@ namespace Gaia.Resources
 
                             ushort keyRotCount = br.ReadUInt16(); //Key frame rot count
                             ushort keyPosCount = br.ReadUInt16(); //Key frame pos count
-                            nodes[i].rotationFrames = new ModelBoneAnimationFrame[keyRotCount];
-                            nodes[i].translationFrames = new ModelBoneAnimationFrame[keyPosCount];
-
+                            //nodes[i].rotationFrames = new ModelBoneAnimationFrame[keyRotCount];
+                            //nodes[i].translationFrames = new ModelBoneAnimationFrame[keyPosCount];
+                            /*
                             for (int j = 0; j < keyRotCount; j++)
                             {
                                 nodes[i].rotationFrames[j].time = br.ReadSingle() * fps; //time
@@ -401,7 +401,10 @@ namespace Gaia.Resources
                                 nodes[i].translationFrames[j].time = br.ReadSingle() * fps; //time
                                 nodes[i].translationFrames[j].Displacement = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
                                 nodes[i].translationFrames[j].boneName = name;
-                            }
+                            }*/
+                            int count = (keyRotCount + keyPosCount) * 4;
+                            for (int j = 0; j < count; j++)
+                                br.ReadSingle();
                         }
 
                         List<AnimationNode> rootNodeList = new List<AnimationNode>();
@@ -423,14 +426,18 @@ namespace Gaia.Resources
                         }
 
                         Matrix[] inverseMats = new Matrix[nodes.Length];
-                        for(int i = 0; i < inverseMats.Length; i++)
+                        Matrix[] invRotMats = new Matrix[nodes.Length];
+                        for (int i = 0; i < inverseMats.Length; i++)
+                        {
                             inverseMats[i] = Matrix.Invert(nodes[i].Transform);
+                            invRotMats[i] = MathUtils.Invert3x3(nodes[i].Transform);
+                        }
                         
                         for(int i = 0; i < verts.Length; i++)
                         {
                             verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
-                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, inverseMats[(int)verts[i].Index]);
-                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, inverseMats[(int)verts[i].Index]);
+                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, invRotMats[(int)verts[i].Index]);
+                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, invRotMats[(int)verts[i].Index]);
                         }
                         vertexBuffer.SetData<VertexPNTTI>(verts);
                         
@@ -924,34 +931,6 @@ namespace Gaia.Resources
         {
 
         }
-
-        public void ExtractNodesBetweenFrames(float startFrame, float endFrame, out SortedList<string, ModelBoneAnimationFrame[]> positionFrames, out SortedList<string, ModelBoneAnimationFrame[]> rotationFrames)
-        {
-            positionFrames = new SortedList<string, ModelBoneAnimationFrame[]>();
-            rotationFrames = new SortedList<string, ModelBoneAnimationFrame[]>();
-            for (int i = 0; i < namesToNodes.Count; i++)
-            {
-                string currKey = namesToNodes.Keys[i];
-                AnimationNode currNode = namesToNodes[currKey];
-                List<ModelBoneAnimationFrame> rotFrames = new List<ModelBoneAnimationFrame>();
-                for (int j = 0; j < currNode.rotationFrames.Length; j++)
-                {
-                    if (currNode.rotationFrames[j].time >= startFrame && currNode.rotationFrames[j].time <= endFrame)
-                        rotFrames.Add(currNode.rotationFrames[j]);
-                }
-                if (rotFrames.Count > 0)
-                    rotationFrames.Add(currKey, rotFrames.ToArray());
-
-                List<ModelBoneAnimationFrame> posFrames = new List<ModelBoneAnimationFrame>();
-                for (int j = 0; j < currNode.translationFrames.Length; j++)
-                {
-                    if (currNode.translationFrames[j].time >= startFrame && currNode.translationFrames[j].time <= endFrame)
-                        posFrames.Add(currNode.translationFrames[j]);
-                }
-                if(posFrames.Count > 0)
-                    positionFrames.Add(currKey, posFrames.ToArray());
-            }
-        }
     }
 
     public class AnimationNode
@@ -959,12 +938,7 @@ namespace Gaia.Resources
         public Vector3 Translation;
         public Vector3 Rotation;
         public Matrix Transform;
-        public Vector3 RotationDelta = Vector3.Zero;
-        public Vector3 TranslationDelta = Vector3.Zero;
         public string Name;
-
-        public ModelBoneAnimationFrame[] rotationFrames;
-        public ModelBoneAnimationFrame[] translationFrames;
 
         public List<AnimationNode> children = new List<AnimationNode>();
 
@@ -980,9 +954,6 @@ namespace Gaia.Resources
             Matrix tempTransform = Matrix.CreateRotationX(Rotation.X) * Matrix.CreateRotationY(Rotation.Y) * Matrix.CreateRotationZ(Rotation.Z);
             tempTransform.Translation = Translation;
 
-            Matrix deltaTransform = Matrix.CreateRotationX(RotationDelta.X) * Matrix.CreateRotationY(RotationDelta.Y) * Matrix.CreateRotationZ(RotationDelta.Z);
-            deltaTransform.Translation = TranslationDelta;
-
             Transform = tempTransform * parentTransform;
             for (int i = 0; i < children.Count; i++)
                 children[i].ApplyTransform(ref Transform);
@@ -991,8 +962,6 @@ namespace Gaia.Resources
         public AnimationNode RecursiveCopy(SortedList<string, AnimationNode> nodeCollection)
         {
             AnimationNode node = new AnimationNode(this.Name, this.Translation, this.Rotation);
-            node.RotationDelta = this.RotationDelta;
-            node.TranslationDelta = this.TranslationDelta;
             nodeCollection.Add(node.Name, node);
             for (int i = 0; i < this.children.Count; i++)
             {

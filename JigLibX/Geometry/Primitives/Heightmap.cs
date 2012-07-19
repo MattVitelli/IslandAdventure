@@ -101,14 +101,17 @@ namespace JigLibX.Geometry
         /// <returns></returns>
         public Vector3 GetNormal(int i, int j)
         {
-            int i0 = i - 1;
+            int i0 = i -1;
             int i1 = i + 1;
-            int j0 = j - 1;
+            int j0 = j -1;
             int j1 = j + 1;
             i0 = (int)MathHelper.Clamp(i0, 0, (int)mHeights.Nx - 1);
             j0 = (int)MathHelper.Clamp(j0, 0, (int)mHeights.Nz - 1);
             i1 = (int)MathHelper.Clamp(i1, 0, (int)mHeights.Nx - 1);
             j1 = (int)MathHelper.Clamp(j1, 0, (int)mHeights.Nz - 1);
+
+            //i = (int)MathHelper.Clamp(i, 0, (int)mHeights.Nx - 1);
+            //j = (int)MathHelper.Clamp(j, 0, (int)mHeights.Nz - 1);
 
             float dx = (i1 - i0) * this.dx;
             float dz = (j1 - j0) * this.dz;
@@ -122,6 +125,7 @@ namespace JigLibX.Geometry
             float hBack = mHeights[i0, j];
             float hLeft = mHeights[i, j1];
             float hRight = mHeights[i, j0];
+            //float hCurr = mHeights[i, j];
 
             Vector3 v1 = new Vector3(dx, hFwd - hBack,0.0f);
             Vector3 v2 = new Vector3(0.0f, hLeft - hRight,dz);
@@ -130,7 +134,7 @@ namespace JigLibX.Geometry
             Vector3 normal;
             Vector3.Cross(ref v1, ref v2, out normal);
             #endregion
-            normal.Normalize();
+            JiggleMath.NormalizeSafe(ref normal);
 
             return normal;
         }

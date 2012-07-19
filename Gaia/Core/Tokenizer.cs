@@ -27,7 +27,7 @@ namespace Gaia.Core
         {
             tokens.Clear();
             char[] separators = new char[] {' ', '\r', '\n' };
-            string[] strings = text.Split(separators);
+            string[] strings = text.Split(separators,StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < strings.Length; i++)
             {
                 if (strings[i] != string.Empty && strings[i] != "")

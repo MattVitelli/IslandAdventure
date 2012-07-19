@@ -19,6 +19,8 @@ namespace Gaia.SceneGraph.GameEntities
         protected SortedList<string, Vector3> defaultTranslations = new SortedList<string, Vector3>();
         protected SortedList<string, Vector3> defaultRotations = new SortedList<string, Vector3>();
 
+        AnimationLayer activeAnimation;
+
         Transform transform;
 
         bool useCustomMatrix = false;

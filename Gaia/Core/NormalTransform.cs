@@ -10,10 +10,18 @@ namespace Gaia.Core
         Vector3 normal;
         bool normalConform;
         float theta = MathHelper.PiOver4;
+        bool useForwardVector = false;
+        Vector3 forwardVec;
  
         public NormalTransform()
         {
             normalConform = false;
+        }
+
+        public void SetForwardVector(Vector3 forward)
+        {
+            useForwardVector = true;
+            forwardVec = forward;
         }
 
         public void ConformToNormal(Vector3 normal)
@@ -43,7 +51,7 @@ namespace Gaia.Core
                 worldMatrix = Matrix.Identity;
                 worldMatrix.Up = normal;
 
-                Vector3 fwd = new Vector3(normal.Z, normal.X, normal.Y);
+                Vector3 fwd = (useForwardVector) ? forwardVec : new Vector3(normal.Z, normal.X, normal.Y);
                 fwd = Vector3.Normalize(fwd - Vector3.Dot(fwd, normal) * normal);
                 Vector3 right = Vector3.Cross(fwd, normal);
 

@@ -30,6 +30,13 @@ namespace Gaia.SceneGraph.GameEntities
 
         protected bool isCrouching = false;
 
+        protected int team = 0;
+
+        public int GetTeam()
+        {
+            return team;
+        }
+
         public bool IsDead()
         {
             return (health <= 0.0f);
@@ -56,8 +63,10 @@ namespace Gaia.SceneGraph.GameEntities
         {
             base.OnAdd(scene);
 
+            scene.AddActor(this);
+
             PhysicsSystem world = scene.GetPhysicsEngine();
-            Vector3 pos = Vector3.Up * 256;
+            Vector3 pos = Vector3.Up * 256 + 15*(new Vector3((float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble())*2-Vector3.One);
             Vector3 normal = Vector3.Up;
             //scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
             pos = pos + Vector3.Up * 5;
@@ -80,6 +89,8 @@ namespace Gaia.SceneGraph.GameEntities
             body.AllowFreezing = false;
             body.EnableBody();
             Transformation = new Transform(body);
+
+            ResetState();
         }
 
         protected void SetupPosture(bool crouching)
@@ -89,9 +100,19 @@ namespace Gaia.SceneGraph.GameEntities
             collision.AddPrimitive(currCapsule, (int)MaterialTable.MaterialID.NormalRough);
         }
 
-        protected void UpdateState()
+        protected virtual void UpdateState()
         {
             energy += Time.GameTime.ElapsedTime * energyRechargeRate;
+        }
+
+        protected virtual void OnDeath()
+        {
+
+        }
+
+        protected virtual void ResetState()
+        {
+
         }
 
         public override void OnUpdate()

@@ -14,5 +14,12 @@ namespace Gaia.Core
             mat.Translation = body.Position;
             return mat;
         }
+
+        public static Matrix ToXNA(Body body, Transform transform)
+        {
+            Matrix mat = body.Orientation * Matrix.CreateRotationY(transform.GetRotation().Y);
+            mat.Translation = body.Position;
+            return mat;
+        }
     }
 }
