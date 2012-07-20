@@ -9,6 +9,26 @@ using JigLibX.Math;
 
 namespace Gaia.Physics
 {
+    public class IgnoreSkinPredicate : CollisionSkinPredicate1
+    {
+        Body ignoreBody;
+
+        public IgnoreSkinPredicate(Body ignoreBody) : base()
+        {
+            this.ignoreBody = ignoreBody;
+        }
+
+        public void SetIgnoreBody(Body body)
+        {
+            ignoreBody = body;
+        }
+
+        public override bool ConsiderSkin(CollisionSkin skin0)
+        {
+            return (skin0.Owner != ignoreBody);
+        }
+    }
+
     public struct State
     {
         public Vector3 position;

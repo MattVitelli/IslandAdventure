@@ -17,7 +17,8 @@ namespace Gaia.Core
 
         public static Matrix ToXNA(Body body, Transform transform)
         {
-            Matrix mat = body.Orientation * Matrix.CreateRotationY(transform.GetRotation().Y);
+            Vector3 rot = transform.GetRotation();
+            Matrix mat = body.Orientation * Matrix.CreateRotationY(rot.Y);
             mat.Translation = body.Position;
             return mat;
         }

@@ -8,14 +8,14 @@ namespace Gaia.SceneGraph.GameEntities
     public class Raptor : Actor
     {
         ViewModel model;
-        const string IDLE_NAME = "AlphaRaptorIdle";
-        const string RUN_NAME = "AlphaRaptorRun";
+        const string IDLE_NAME = "AllosaurusIdle";
+        const string RUN_NAME = "AllosaurusRunN";
         const string WALK_NAME = "AlphaRaptorWalk";
-        const string STEALTHIDLE_NAME = "AlphaRaptorStealth";
-        const string ROAR_NAME = "AlphaRaptorRoar";
+        const string STEALTHIDLE_NAME = "AllosaurusIdle";
+        const string ROAR_NAME = "AllosaurusBark";
         const string JUMPNAV_NAME = "AlphaRaptorJumpNav";
-        const string ATTACK_NAME = "AlphaRaptorAttack";
-        const string MELEE_NAME = "AlphaRaptorMelee";
+        const string ATTACK_NAME = "AllosaurusShove";
+        const string MELEE_NAME = "AllosaurusShove";
         const string LEAPSTART_NAME = "AlphaRaptorLeapStart";
         const string LEAPIDLE_NAME = "AlphaRaptorLeapIdle";
         const string LEAPEND_NAME = "AlphaRaptorLeapEnd";
@@ -48,6 +48,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         Vector3 velocityVector = Vector3.Zero;
         const float speed =  9.5f;
+        NormalTransform grounding = new NormalTransform();
 
         Actor enemy = null;
 
@@ -55,10 +56,15 @@ namespace Gaia.SceneGraph.GameEntities
 
         public Raptor()
         {
-            model = new ViewModel("AlphaRaptor");
-            Matrix xform = Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.Pi);
-            xform.Translation = Vector3.Up * 3.0f;
-            model.SetCustomMatrix(xform);
+            model = new ViewModel("Allosaurus");
+
+            grounding.SetScale(Vector3.One * 0.09f);
+            grounding.SetRotation(new Vector3(-MathHelper.PiOver2, MathHelper.Pi, 0));
+            BoundingBox bounds = model.GetMeshBounds();
+            Vector3 midPoint = (bounds.Max + bounds.Min) * 0.5f;
+            grounding.SetPosition(Vector3.Up * (midPoint.Y - bounds.Min.Y) * grounding.GetScale() * 1.15f);
+
+            model.SetCustomMatrix(grounding.GetTransform());
             team = 3;
         }
 
@@ -82,7 +88,20 @@ namespace Gaia.SceneGraph.GameEntities
                 float runWeight = 1.0f - walkWeight;
                 //model.SetAnimationLayer(WALK_NAME, walkWeight);
                 model.SetAnimationLayer(RUN_NAME, 1.0f);
+                model.SetAnimationLayer(ATTACK_NAME, 0.0f);
             }
+            if (state == RaptorState.Attack)
+            {
+                model.SetAnimationLayer(RUN_NAME, 0.0f);
+
+                model.SetAnimationLayer(MELEE_NAME, 1.0f);
+            }
+            //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
+            if (velocityVector.Length() > 0.01f)
+                grounding.SetForwardVector(Vector3.Normalize(velocityVector));
+            grounding.ConformToNormal(body.GetContactNormal());
+
+            model.SetCustomMatrix(grounding.GetTransform());
             model.OnUpdate();
         }
 
@@ -142,7 +161,7 @@ namespace Gaia.SceneGraph.GameEntities
                 else
                     rot.Y -= radianAngle * 0.02f;
             }
-            Transformation.SetRotation(rot);
+            //Transformation.SetRotation(rot);
             velocityVector = moveDir * speed;
         }
 
@@ -217,13 +236,14 @@ namespace Gaia.SceneGraph.GameEntities
                     break;
 
                 case RaptorState.Attack:
-                    if (distanceToTarget > ATTACK_DISTANCE * 1.5f || distanceToTarget < MIN_ATTACK_DISTANCE)
+                    if (distanceToTarget > ATTACK_DISTANCE * 1.5f)// || distanceToTarget < MIN_ATTACK_DISTANCE)
                     {
                         state = RaptorState.Chase;
                     }
                     else
                     {
                         Move(targetVec);
+                        state = RaptorState.Attack;
                         //Attack
                     }
                     break;

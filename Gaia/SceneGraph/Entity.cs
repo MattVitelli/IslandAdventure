@@ -45,6 +45,8 @@ namespace Gaia.SceneGraph
             Transformation.SetScale(scale);
         }
 
+        public Scene GetScene() { return scene; }
+
         public virtual void OnAdd(Scene scene) { this.scene = scene; }
         public virtual void OnDestroy() { }
 

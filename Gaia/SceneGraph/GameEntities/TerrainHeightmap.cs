@@ -31,9 +31,9 @@ namespace Gaia.SceneGraph.GameEntities
 
         int patchWidth = 8;
         Vector2 heightRange;
-        float[] heightValues;
-        int width;
-        int depth;
+        public float[] heightValues;
+        public int width;
+        public int depth;
 
         int numPatchesX;
         int numPatchesZ;
@@ -41,6 +41,9 @@ namespace Gaia.SceneGraph.GameEntities
         CollisionSkin collision;
 
         BoundingFrustum frustum = new BoundingFrustum(Matrix.Identity);
+
+        int L = 9;              // levels
+        public int N = 63;             // size of a level
 
         public int GetWidth()
         {

@@ -39,8 +39,8 @@ namespace Gaia.Resources
         public Vector3 kAmbient = Vector3.One;
         public Vector3 kDiffuse = Vector3.One;
         public Vector3 kSpecular = Vector3.One;
-        float kSpecularPower = 15;
-        float kSpecularCoeff = 1;
+        float kSpecularPower = 15.0f / 255.0f;
+        float kSpecularCoeff = 0.8f;
         float kRimCoeff = 1;
 
         public int CompareTo(object obj)

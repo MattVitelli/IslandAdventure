@@ -201,6 +201,7 @@
     <Compile Include="SceneGraph\Scene.cs" />
     <Compile Include="Sound\Sound2D.cs" />
     <Compile Include="Sound\Sound3D.cs" />
+    <Compile Include="TerrainHelper\Clipmap.cs" />
     <Compile Include="UI\UIAnimation.cs" />
     <Compile Include="UI\UIButton.cs" />
     <Compile Include="UI\UICompass.cs" />

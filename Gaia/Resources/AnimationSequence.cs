@@ -15,12 +15,6 @@ namespace Gaia.Resources
         public string boneName;
     }
 
-    public enum AnimationType
-    {
-        Rotation,
-        Position,
-    }
-
     public class AnimationSequence : IResource
     {
         const float blendOutTime = 0.2f;
@@ -190,10 +184,16 @@ namespace Gaia.Resources
                         for (int j = 0; j < animationFrames[currName].Length; j++)
                         {
                             animationFrames[currName][j].boneName = currName;
+                            if (rootNodes.ContainsKey(currName))
+                            {
+                                if (recenterRoots)
+                                    animationFrames[currName][j].Position = nodes[currName].Translation;
+                            }
                             animationFrames[currName][j].Position -= nodes[currName].Translation;
                             animationFrames[currName][j].Rotation -= nodes[currName].Rotation;
-                            if (rootNodes.ContainsKey(currName) && recenterRoots)
-                                animationFrames[currName][j].Position = Vector3.Zero;
+                            Vector3 rot = animationFrames[currName][j].Rotation;
+                            animationFrames[currName][j].Rotation = new Vector3(MathHelper.WrapAngle(rot.X), MathHelper.WrapAngle(rot.Y), MathHelper.WrapAngle(rot.Z));
+                            
                         }
                     }
                 }
@@ -219,73 +219,35 @@ namespace Gaia.Resources
             return keys;
         }
 
-        public int ComputeFrameIndex(string name, float time)
+        public void GetKeyFrameParameter(string name, out Vector3 pos, out Vector3 rot, float time)
         {
             int frameIndex = 0;
             int numFrames = animationFrames[name].Length;
             while (frameIndex < numFrames && animationFrames[name][frameIndex].time < time)
                 frameIndex++;
-            return frameIndex;
-        }
 
-        public void GetKeyFrameParameter(string name, out Vector3 pos, out Vector3 rot, float time, ref int frameIndex)
-        {
-            int numFrames = animationFrames[name].Length;
-            if (!IsCyclic)
+            if (frameIndex == 0)
             {
-                if (frameIndex == 0)
-                {
-                    pos = animationFrames[name][0].Position;
-                    rot = animationFrames[name][0].Rotation;
-                    if (time >= animationFrames[name][frameIndex].time)
-                        frameIndex++;
-                }
-                else if (frameIndex == numFrames)
-                {
-                    float interp = Math.Min(1.0f, ((time - animationFrames[name][numFrames - 1].time) / blendOutTime));
-                    pos = Vector3.Lerp(animationFrames[name][numFrames - 1].Position, animationFrames[name][0].Position, interp);
-                    rot = Vector3.Lerp(animationFrames[name][numFrames - 1].Rotation, animationFrames[name][0].Rotation, interp);
-                }
-                else
-                {
-                    int prevFrameIndex = frameIndex - 1;
-
-                    ModelBoneAnimationFrame right = animationFrames[name][frameIndex];
-                    ModelBoneAnimationFrame left = animationFrames[name][prevFrameIndex];
-                    float timeDelta = Math.Max(0.01f, right.time - left.time);
-                    float interpolator = (time - left.time) / timeDelta;
-                    if (interpolator >= 1.0f)
-                        frameIndex++;
-                    pos = Vector3.Lerp(left.Position, right.Position, Math.Min(1.0f, interpolator));
-                    rot = Vector3.Lerp(left.Rotation, right.Rotation, Math.Min(1.0f, interpolator));
-
-                }
+                pos = animationFrames[name][0].Position;
+                rot = animationFrames[name][0].Rotation;
+            }
+            else if (frameIndex == animationFrames[name].Length)
+            {
+                int idx = numFrames - 1;
+                pos = animationFrames[name][idx].Position;
+                rot = animationFrames[name][idx].Rotation;
             }
             else
             {
                 int prevFrameIndex = frameIndex - 1;
-                if (prevFrameIndex < 0)
-                {
-                    prevFrameIndex = animationFrames[name].Length - 1;
-                }
+
                 ModelBoneAnimationFrame right = animationFrames[name][frameIndex];
                 ModelBoneAnimationFrame left = animationFrames[name][prevFrameIndex];
-                float leftTime = (prevFrameIndex == (animationFrames[name].Length - 1)) ? 0.0f : left.time;
-
-                float timeDelta = Math.Max(0.01f, Math.Abs(right.time - leftTime));
-                float interpolator = Math.Abs(time - leftTime) / timeDelta;
+                float timeDelta = right.time - left.time;
+                float interpolator = MathHelper.Clamp((float)Math.Sqrt((time - left.time) / timeDelta), 0, 1);
 
                 pos = Vector3.Lerp(left.Position, right.Position, interpolator);
                 rot = Vector3.Lerp(left.Rotation, right.Rotation, interpolator);
-                if (interpolator >= 1.0f)
-                {
-                    frameIndex++;
-                    if (frameIndex >= animationFrames[name].Length)
-                        frameIndex = 0;
-
-                    pos = Vector3.Lerp(left.Position, right.Position, Math.Min(1.0f,interpolator));
-                    rot = Vector3.Lerp(left.Rotation, right.Rotation, Math.Min(1.0f,interpolator));
-                }
             }
         }
     }

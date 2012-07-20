@@ -177,9 +177,9 @@ namespace Gaia.SceneGraph
         void InitializePhysics()
         {
             world = new PhysicsSystem();
-            //world.CollisionSystem = new CollisionSystemGrid(64, 64, 64, 5, 5, 5);
+            world.CollisionSystem = new CollisionSystemGrid(64, 64, 64, 5, 5, 5);
             //physicSystem.CollisionSystem = new CollisionSystemBrute();
-            world.CollisionSystem = new CollisionSystemSAP();
+            //world.CollisionSystem = new CollisionSystemSAP();
 
             world.EnableFreezing = true;
             world.SolverType = PhysicsSystem.Solver.Combined;
@@ -243,6 +243,7 @@ namespace Gaia.SceneGraph
 
         void CreateForest()
         {
+            /*
             List<TriangleGraph> availableTriangles;
             BoundingBox region = MainTerrain.Transformation.GetBounds();
             if (MainTerrain.GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, region))
@@ -262,6 +263,21 @@ namespace Gaia.SceneGraph
                 }
             }
             availableTriangles.Clear();
+            GC.Collect();
+            */
+
+            for (int i = 0; i < 300; i++)
+            {
+                Model tree = new Model("Cecropia");
+                NormalTransform transform = new NormalTransform();
+                tree.Transformation = transform;
+                Vector3 pos;
+                Vector3 normal;
+                MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
+                transform.ConformToNormal(normal);
+                transform.SetPosition(pos);
+                AddEntity("T", tree);
+            }
             GC.Collect();
         }
 

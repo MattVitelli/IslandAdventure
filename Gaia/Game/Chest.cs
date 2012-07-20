@@ -23,8 +23,11 @@ namespace Gaia.Game
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
-            if(collision != null)
+            if (collision != null)
+            {
+                interactBody.CollisionSkin = collision;
                 collision.Owner = interactBody;
+            }
         }
     }
 

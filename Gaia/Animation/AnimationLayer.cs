@@ -13,6 +13,7 @@ namespace Gaia.Animation
         float elapsedTime = 0;
         ViewModel model;
         string name;
+
         public AnimationLayer(string name, ViewModel model, float weight)
         {
             this.name = name;
@@ -29,19 +30,9 @@ namespace Gaia.Animation
                 frameIndices.Add(keys[i], 0);
         }
 
-        void ComputeFrameIndices()
-        {
-            for (int i = 0; i < frameIndices.Count; i++)
-            {
-                string currKey = frameIndices.Keys[i];
-                frameIndices[currKey] = animation.ComputeFrameIndex(currKey, elapsedTime);
-            }
-        }
-
         public void SetTime(float time)
         {
             elapsedTime = time;
-            ComputeFrameIndices();
         }
 
         public void UpdateAnimation(float timeDT, SortedList<string, AnimationNode> nodes)
@@ -53,7 +44,7 @@ namespace Gaia.Animation
                 int frameIndex = frameIndices[currKey];
                 Vector3 posDelta = Vector3.Zero;
                 Vector3 rotDelta = Vector3.Zero;
-                animation.GetKeyFrameParameter(currKey, out posDelta, out rotDelta, elapsedTime, ref frameIndex);
+                animation.GetKeyFrameParameter(currKey, out posDelta, out rotDelta, elapsedTime);
                 frameIndices[currKey] = frameIndex;
                 nodes[currKey].Translation += posDelta * Weight;
                 nodes[currKey].Rotation += rotDelta * Weight;
@@ -64,7 +55,6 @@ namespace Gaia.Animation
                 if (animation.IsCyclic)
                 {
                     elapsedTime = 0;
-                    ComputeFrameIndices();
                 }
                 else
                 {

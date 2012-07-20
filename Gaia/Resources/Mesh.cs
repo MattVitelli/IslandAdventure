@@ -48,12 +48,19 @@ namespace Gaia.Resources
         TriangleMesh collisionMesh;
         int vertexCount;
         VertexBuffer vertexBuffer;
+        VertexPNTTI[] vertices;
         VertexBuffer vertexBufferInstanced;
 
         Imposter imposterGeometry = null;
 
         public bool Rendered = true;
-        
+
+        public VertexBuffer GetVertexBuffer(out int vertCount)
+        {
+            vertCount = vertexCount;
+            return vertexBuffer;
+        }
+
         public TriangleMesh GetCollisionMesh()
         {
             return collisionMesh;
@@ -62,6 +69,16 @@ namespace Gaia.Resources
         public BoundingBox GetBounds()
         {
             return meshBounds;
+        }
+
+        public VertexPNTTI GetVertex(int index)
+        {
+            return vertices[index];
+        }
+
+        public AnimationNode[] GetNodes()
+        {
+            return nodes;
         }
 
         class ModelPart
@@ -120,7 +137,6 @@ namespace Gaia.Resources
 
         public AnimationNode[] GetRootNodes(out SortedList<string, AnimationNode> nodeCollection)
         {
-            
             nodeCollection = new SortedList<string, AnimationNode>();
 
             if (rootNodes == null)
@@ -436,8 +452,8 @@ namespace Gaia.Resources
                         for(int i = 0; i < verts.Length; i++)
                         {
                             verts[i].Position = Vector3.Transform(verts[i].Position, inverseMats[(int)verts[i].Index]);
-                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, invRotMats[(int)verts[i].Index]);
-                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, invRotMats[(int)verts[i].Index]);
+                            verts[i].Normal = Vector3.TransformNormal(verts[i].Normal, inverseMats[(int)verts[i].Index]);
+                            verts[i].Tangent = Vector3.TransformNormal(verts[i].Tangent, inverseMats[(int)verts[i].Index]);
                         }
                         vertexBuffer.SetData<VertexPNTTI>(verts);
                         
@@ -685,6 +701,39 @@ namespace Gaia.Resources
             }
         }
 
+        public void Render(Matrix transform, VertexBuffer animBuffer, RenderView view, bool performCulling)
+        {
+            if (performCulling)
+            {
+                BoundingFrustum frustum = view.GetFrustum();
+                Matrix oldMat = frustum.Matrix;
+                frustum.Matrix = transform * view.GetViewProjection();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (frustum.Contains(parts[i].bounds) != ContainmentType.Disjoint)
+                    {
+                        RenderElement element = parts[i].renderElement;
+                        element.VertexBuffer = animBuffer;
+                        element.Transform = new Matrix[] { transform };
+                        element.IsAnimated = true;
+                        view.AddElement(parts[i].material, element);
+                    }
+                }
+                frustum.Matrix = oldMat;
+            }
+            else
+            {
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    RenderElement element = parts[i].renderElement;
+                    element.VertexBuffer = animBuffer;
+                    element.Transform = new Matrix[] { transform };
+                    element.IsAnimated = true;
+                    view.AddElement(parts[i].material, element);
+                }
+            }
+        }
+
         public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view, bool performCulling)
         {
             if (performCulling)
@@ -921,6 +970,9 @@ namespace Gaia.Resources
                 CreateImposter();
             }
 
+            vertices = new VertexPNTTI[vertexCount];
+            vertexBuffer.GetData<VertexPNTTI>(vertices);
+
             /*
             if(useCollision)
                 CreateCollisionMesh();
@@ -938,6 +990,7 @@ namespace Gaia.Resources
         public Vector3 Translation;
         public Vector3 Rotation;
         public Matrix Transform;
+        public Matrix TransformIT;
         public string Name;
 
         public List<AnimationNode> children = new List<AnimationNode>();
@@ -951,10 +1004,14 @@ namespace Gaia.Resources
 
         public void ApplyTransform(ref Matrix parentTransform)
         {
+            Rotation.X = MathHelper.WrapAngle(Rotation.X);
+            Rotation.Y = MathHelper.WrapAngle(Rotation.Y);
+            Rotation.Z = MathHelper.WrapAngle(Rotation.Z);
             Matrix tempTransform = Matrix.CreateRotationX(Rotation.X) * Matrix.CreateRotationY(Rotation.Y) * Matrix.CreateRotationZ(Rotation.Z);
             tempTransform.Translation = Translation;
 
             Transform = tempTransform * parentTransform;
+            TransformIT = Matrix.Invert(Matrix.Transpose(Transform));
             for (int i = 0; i < children.Count; i++)
                 children[i].ApplyTransform(ref Transform);
         }

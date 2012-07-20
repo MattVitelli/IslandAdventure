@@ -57,7 +57,7 @@ namespace Gaia.Core
 
                 worldMatrix.Right = right;// Vector3.Normalize(new Vector3(normal.Z, normal.X, normal.Y));
                 worldMatrix.Forward = fwd;// Vector3.Normalize(Vector3.Cross(worldMatrix.Up, worldMatrix.Right));
-                worldMatrix = Matrix.CreateScale(scale) * Matrix.CreateRotationY(theta) * worldMatrix;
+                worldMatrix = Matrix.CreateScale(scale) * Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z) * worldMatrix;
                 worldMatrix.Translation = position;
             }
             

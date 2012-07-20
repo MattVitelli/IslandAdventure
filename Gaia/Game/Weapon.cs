@@ -8,9 +8,11 @@ using Gaia.Rendering;
 using Gaia.Rendering.RenderViews;
 using Gaia.SceneGraph;
 using Gaia.SceneGraph.GameEntities;
+using Gaia.Physics;
 
 using JigLibX.Collision;
 using JigLibX.Geometry;
+using JigLibX.Physics;
 
 namespace Gaia.Game
 {
@@ -19,9 +21,11 @@ namespace Gaia.Game
         Scene scene;
         ViewModel fpsModel;
         float coolDownTimeRemaining = 0;
+        IgnoreSkinPredicate ignorePred;
 
-        public Weapon(string modelName, Transform transform, Scene scene)
+        public Weapon(string modelName, Body body, Transform transform, Scene scene)
         {
+            this.ignorePred = new IgnoreSkinPredicate(body);
             this.scene = scene;
             this.fpsModel = new ViewModel(modelName);
             fpsModel.SetTransform(transform);
@@ -56,7 +60,7 @@ namespace Gaia.Game
 
                 Segment seg = new Segment(muzzlePosition, muzzleDir * 200);
 
-                scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, null);
+                scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
                 if (skin != null)
                 {
                     Decal decal = new Decal();

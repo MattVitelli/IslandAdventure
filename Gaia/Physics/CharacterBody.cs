@@ -33,6 +33,12 @@ namespace Gaia.Physics
 
         private bool doJump = false;
 
+        Vector3 contactNormal = Vector3.Up;
+        public Vector3 GetContactNormal()
+        {
+            return contactNormal;
+        }
+
         public void Jump(float _jumpForce)
         {
             doJump = true;
@@ -75,6 +81,8 @@ namespace Gaia.Physics
                 Vector3 N = info.DirToBody0;
                 if (this == info.SkinInfo.Skin1.Owner)
                     Vector3.Negate(ref N, out N);
+                else
+                    contactNormal = Vector3.Normalize(N);
             }
 
             Vector3 deltaVel = DesiredVelocity - Velocity;

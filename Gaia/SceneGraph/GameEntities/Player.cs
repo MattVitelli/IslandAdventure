@@ -25,7 +25,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             camera = scene.MainPlayer;
 
-            gun = new Weapon("Pistol", camera.Transformation, scene);
+            gun = new Weapon("Pistol", this.body, camera.Transformation, scene);
         }
 
         public void SetEnabled(bool enabled)
