@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace Gaia.Core
 {
     public class KDNode<T>
     {
         public T element;
+
+        public BoundingBox bounds;
 
         public KDNode<T> leftChild;
 

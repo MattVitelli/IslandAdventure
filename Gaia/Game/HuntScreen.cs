@@ -22,10 +22,13 @@ namespace Gaia.Game
         UIList inventoryList;
         UIButton costLabel;
         UIButton huntButton;
+        UIButton selectedDinosaurImage;
+        UIButton selectedGunImage;
+        
 
         Vector4 goldColor = new Vector4(0.8863f, 0.8551f, 0.7304f, 1.0f);
         Vector2 listScale = new Vector2(0.20f, 0.45f);
-        const float listHeight = -0.25f;
+        const float listHeight = -0.35f;
 
         public HuntScreen()
             : base()
@@ -34,6 +37,7 @@ namespace Gaia.Game
             CreateWeaponList();
             CreateDinosaurList();
             CreateInventoryList();
+            CreateMiscButtons();
             CreateCostLabel();
             CreateHuntButton();
         }
@@ -77,11 +81,9 @@ namespace Gaia.Game
             dinosaurList.ItemColor = goldColor;
             dinosaurList.Position = new Vector2(-0.25f, listHeight);
             dinosaurList.Scale = listScale;
-            string[] testStrings = new string[] 
-            { 
-                "Allosaurus", "Velociraptor", "T-Rex", "Triceratops",
-            };
-            dinosaurList.Items.AddRange(testStrings);
+            DinosaurDatablock[] datablocks = ResourceManager.Inst.GetDinosaurDatablocks();
+            for (int i = 0; i < datablocks.Length; i++)
+                dinosaurList.Items.Add(datablocks[i].Name);
             dinosaurList.SetColor(new Vector4(0.15f, 0.15f, 0.15f, 1.0f));
             this.controls.Add(dinosaurList);
         }
@@ -113,9 +115,18 @@ namespace Gaia.Game
         void CreateHuntButton()
         {
             huntButton = new UIButton(null, goldColor, "Hunt!");
-            huntButton.Position = new Vector2(0.8f, -0.85f);
+            huntButton.Position = new Vector2(0.8f, -0.9f);
             huntButton.Scale = new Vector2(0.2f, 0.15f);
             this.controls.Add(huntButton);
+        }
+
+        void CreateMiscButtons()
+        {
+            DinosaurDatablock firstDino = ResourceManager.Inst.GetDinosaurDatablock(dinosaurList.Items[0]);
+            selectedDinosaurImage = new UIButton(firstDino.HuntImage, Vector4.One, string.Empty);
+            selectedDinosaurImage.Position = new Vector2(-0.25f, 0.6f);
+            selectedDinosaurImage.Scale = new Vector2(0.2f, 0.3f);
+            this.controls.Add(selectedDinosaurImage);
         }
 
         public override void OnUpdate(float timeDT)

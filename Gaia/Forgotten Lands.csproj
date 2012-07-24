@@ -161,6 +161,7 @@
     <Compile Include="Rendering\Simulators\ParticleSimulator.cs" />
     <Compile Include="Rendering\Simulators\PerlinNoiseSimulator.cs" />
     <Compile Include="Resources\AnimationSequence.cs" />
+    <Compile Include="Resources\DinosaurDatablock.cs" />
     <Compile Include="Resources\TerrainClimateVoxels.cs" />
     <Compile Include="Resources\ItemDatablock.cs" />
     <Compile Include="Resources\QuestResource.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />
     <Compile Include="SceneGraph\GameEntities\Cloud.cs" />
     <Compile Include="SceneGraph\GameEntities\ClutterPlacement.cs" />
+    <Compile Include="SceneGraph\GameEntities\ForestManager.cs" />
     <Compile Include="SceneGraph\GameEntities\Raptor.cs" />
     <Compile Include="SceneGraph\GameEntities\ShapePlacement.cs" />
     <Compile Include="SceneGraph\GameEntities\Decal.cs" />

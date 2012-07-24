@@ -22,6 +22,7 @@ namespace Gaia.SceneGraph
         public List<Actor> Actors = new List<Actor>();
         public SortedList<string, Entity> Entities = new SortedList<string, Entity>();
         PriorityQueue<int, RenderView> RenderViews = new PriorityQueue<int, RenderView>();
+        //KDTree<Entity> StaticEntityList = new KDTree<Entity>(EntityCompareFunction);
 
         public Light MainLight; //Our sunlight
         
@@ -302,8 +303,9 @@ namespace Gaia.SceneGraph
             Entities["TestTree"].Transformation.SetPosition(Vector3.Forward * 10.0f);
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
-            
-            CreateForest();
+
+            AddEntity("Forest", new ForestManager());
+            //CreateForest();
 
             //Entities.Add("Grass", new ShapePlacement());
 

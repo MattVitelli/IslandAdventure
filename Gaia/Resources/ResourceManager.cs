@@ -18,6 +18,9 @@ namespace Gaia.Resources
         Team,
         TerrainClimate,
         TerrainClimateVoxels,
+        DinosaurDatablock,
+        WeaponDatablock,
+
         Count
     }
 
@@ -75,6 +78,12 @@ namespace Gaia.Resources
 
             ResourceTypeDefs[(int)ResourceTypes.TerrainClimateVoxels] = typeof(TerrainClimateVoxels);
             ResourceTypeTokens[(int)ResourceTypes.TerrainClimateVoxels] = "TerrainClimateVoxels";
+
+            ResourceTypeDefs[(int)ResourceTypes.DinosaurDatablock] = typeof(DinosaurDatablock);
+            ResourceTypeTokens[(int)ResourceTypes.DinosaurDatablock] = "DinosaurDatablock";
+
+            ResourceTypeDefs[(int)ResourceTypes.WeaponDatablock] = typeof(WeaponDatablock);
+            ResourceTypeTokens[(int)ResourceTypes.WeaponDatablock] = "WeaponDatablock";
         }
 
         public void LoadResources()
@@ -169,6 +178,30 @@ namespace Gaia.Resources
         public TerrainClimateVoxels GetTerrainClimateVoxels(string key)
         {
             return (TerrainClimateVoxels)GetResource(key, ResourceTypes.TerrainClimateVoxels);
+        }
+
+        public DinosaurDatablock GetDinosaurDatablock(string key)
+        {
+            return (DinosaurDatablock)GetResource(key, ResourceTypes.DinosaurDatablock);
+        }
+
+        public WeaponDatablock GetWeaponDatablock(string key)
+        {
+            return (WeaponDatablock)GetResource(key, ResourceTypes.WeaponDatablock);
+        }
+
+        public DinosaurDatablock[] GetDinosaurDatablocks()
+        {
+            DinosaurDatablock[] datablocks = new DinosaurDatablock[resources[(int)ResourceTypes.DinosaurDatablock].Count];
+            resources[(int)ResourceTypes.DinosaurDatablock].Values.CopyTo(datablocks, 0);
+            return datablocks;
+        }
+
+        public WeaponDatablock[] GetWeaponDatablocks()
+        {
+            WeaponDatablock[] datablocks = new WeaponDatablock[resources[(int)ResourceTypes.WeaponDatablock].Count];
+            resources[(int)ResourceTypes.WeaponDatablock].Values.CopyTo(datablocks, 0);
+            return datablocks;
         }
     }
 }

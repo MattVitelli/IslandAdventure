@@ -714,11 +714,20 @@ namespace Gaia.Resources
             }
             else
             {
-                for (int i = 0; i < parts.Length; i++)
+                if (imposterGeometry != null)
                 {
-                    if (!parts[i].cachedTransforms.ContainsKey(view))
-                        parts[i].cachedTransforms.Add(view, new List<Matrix>());
-                    parts[i].cachedTransforms[view].Add(transform);
+                    if (!imposterGeometry.cachedTransforms.ContainsKey(view))
+                        imposterGeometry.cachedTransforms.Add(view, new List<Matrix>());
+                    imposterGeometry.cachedTransforms[view].Add(imposterGeometry.Scale * transform);
+                }
+                else
+                {
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (!parts[i].cachedTransforms.ContainsKey(view))
+                            parts[i].cachedTransforms.Add(view, new List<Matrix>());
+                        parts[i].cachedTransforms[view].Add(transform);
+                    }
                 }
             }
         }
@@ -954,12 +963,13 @@ namespace Gaia.Resources
             imposterGeometry.ImposterMaterial.SetShader(ResourceManager.Inst.GetShader("ImposterShader"));
             TextureResource baseMap = new TextureResource();
             baseMap.SetTexture(TextureResourceType.Texture2D, imposterGeometry.BaseMap.GetTexture());
+            imposterGeometry.BaseMap.GetTexture().GenerateMipMaps(TextureFilter.GaussianQuad);
             TextureResource normalMap = new TextureResource();
             normalMap.SetTexture(TextureResourceType.Texture2D, imposterGeometry.NormalMap.GetTexture());
             imposterGeometry.ImposterMaterial.SetTexture(0, baseMap);
             imposterGeometry.ImposterMaterial.SetTexture(1, normalMap);
             imposterGeometry.ImposterMaterial.SetName(name + "_IMPOSTER_MATERIAL");
-            imposterGeometry.ImposterMaterial.IsFoliage = true;
+            imposterGeometry.ImposterMaterial.IsFoliage = false;// true;
         }
 
         void IResource.LoadFromXML(XmlNode node)

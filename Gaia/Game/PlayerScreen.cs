@@ -46,7 +46,7 @@ namespace Gaia.Game
 
             crosshair = new UIButton(ResourceManager.Inst.GetTexture("UI/Game/crossHair.dds"), Vector4.One, string.Empty);
             crosshair.Position = Vector2.Zero;
-            crosshair.Scale = Vector2.One * 0.07f;
+            crosshair.Scale = Vector2.One * 0.035f;
 
             scoreLabel = new UIButton(null, Vector4.One, "Score:");
             scoreLabel.Position = new Vector2(0.7f, 0.85f);

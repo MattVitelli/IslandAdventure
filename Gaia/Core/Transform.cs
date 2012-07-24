@@ -87,6 +87,14 @@ namespace Gaia.Core
             return bounds;
         }
 
+        public virtual BoundingBox TransformBounds(BoundingBox inBounds)
+        {
+            Matrix transform = GetTransform();
+            Vector3 min = Vector3.Transform(inBounds.Min, transform);
+            Vector3 max = Vector3.Transform(inBounds.Max, transform);
+            return new BoundingBox(Vector3.Min(min, max), Vector3.Max(min, max));
+        }
+
         protected virtual void UpdateMatrix()
         {
             if (body == null)

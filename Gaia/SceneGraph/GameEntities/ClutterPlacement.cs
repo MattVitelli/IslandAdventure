@@ -69,8 +69,8 @@ namespace Gaia.SceneGraph.GameEntities
         TerrainClimate climate;
         SortedList<int, GrassPatch> patches = new SortedList<int, GrassPatch>();
         
-        int numVisiblePatches = 3;
-        int grassPerPatch = 64;
+        int numVisiblePatches = 15;
+        int grassPerPatch = 16;
         int numPatchesX;
         int numPatchesZ;
 
