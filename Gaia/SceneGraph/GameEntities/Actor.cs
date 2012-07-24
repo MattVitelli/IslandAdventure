@@ -66,10 +66,11 @@ namespace Gaia.SceneGraph.GameEntities
             scene.AddActor(this);
 
             PhysicsSystem world = scene.GetPhysicsEngine();
+            
             Vector3 pos = Vector3.Up * 256 + 15*(new Vector3((float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble())*2-Vector3.One);
             Vector3 normal = Vector3.Up;
-            //scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
-            pos = pos + Vector3.Up * 5;
+            scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
+            //pos = pos + Vector3.Up * 5;
 
             body = new CharacterBody();
             collision = new CollisionSkin(body);

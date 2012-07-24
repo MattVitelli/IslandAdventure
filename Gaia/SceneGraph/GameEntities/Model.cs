@@ -56,7 +56,7 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnAdd(Scene scene)
         {
             base.OnAdd(scene);
-            if (mesh.GetCollisionMesh() != null)
+            if (false == true && mesh.GetCollisionMesh() != null)
             {
                 Matrix currOrientation = Transformation.GetTransform();
                 currOrientation.Translation = Vector3.Zero;
@@ -81,9 +81,11 @@ namespace Gaia.SceneGraph.GameEntities
         public override void OnRender(Gaia.Rendering.RenderViews.RenderView view)
         {
             Matrix transform = this.Transformation.GetTransform();
+            /*
             if (rootNodes != null && rootNodes.Length > 0)
                 mesh.Render(transform, nodes, view, true);
             else
+            */
                 mesh.Render(transform, view, true);
 
             base.OnRender(view);

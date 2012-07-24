@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Gaia.TerrainHelper;
 using Gaia.Resources;
 using Gaia.Rendering.RenderViews;
 
@@ -11,32 +12,54 @@ namespace Gaia.Rendering
     public class TerrainRenderElement
     {
         public Texture2D[] BlendMaps;
-        public RenderElement Element;
+        public Texture2D NormalMap;
+        public Clipmap[] clips;
+        public int N;
+        public Vector3 CameraPos;
     }
 
     public class TerrainElementManager : RenderElementManager
     {
+        public virtual void AddElement(TerrainClimate climate, TerrainRenderElement element) {}
+
+        public TerrainElementManager(RenderView view) : base(view) { }
+
+        protected void DrawElement(TerrainRenderElement element)
+        {
+            for (int j = element.clips.Length - 1; j >= 0; j--)
+            {
+                bool isVisible = (renderView.GetFrustum().Contains(element.clips[j].Bounds) != ContainmentType.Disjoint || element.clips[j].Bounds.Contains(renderView.GetPosition()) != ContainmentType.Disjoint);
+                if (element.clips[j].Triangles > 0 && isVisible)
+                {
+                    GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_USERDEF0, new Vector4(element.N, element.clips[j].FactorG, element.CameraPos.X, element.CameraPos.Z));
+                    GFX.Device.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, element.clips[j].Vertices, 0, element.clips[j].Vertices.Length, element.clips[j].Indices, 0, element.clips[j].Triangles);
+                }
+            }
+        }
+    }
+
+    public class TerrainSceneElementManager : TerrainElementManager
+    {
         SortedList<TerrainClimate, Queue<TerrainRenderElement>> Elements = new SortedList<TerrainClimate, Queue<TerrainRenderElement>>();
-
-        Queue<TerrainRenderElement> ElementsToProcess = new Queue<TerrainRenderElement>();
-
+        
+        /*
         RenderTarget2D BlendAlbedo;
         RenderTarget2D BlendNormal;
         DepthStencilBuffer DepthStencil;
         Texture2D nullAlbedo;
         Texture2D nullNormal;
-
+        */
         Shader terrainShader;
         Shader terrainBlendShader;
 
         MainRenderView mainRenderView;
 
-        public TerrainElementManager(MainRenderView renderView)
+        public TerrainSceneElementManager(MainRenderView renderView)
             : base(renderView)
         {
             mainRenderView = renderView;
             terrainShader = ResourceManager.Inst.GetShader("TerrainHMShader");
-            terrainBlendShader = ResourceManager.Inst.GetShader("TerrainBlend");
+            /*
             BlendAlbedo = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width/2, renderView.ColorMap.Height/2, 1, SurfaceFormat.Color);
             BlendNormal = new RenderTarget2D(GFX.Device, renderView.ColorMap.Width/2, renderView.ColorMap.Height/2, 1, SurfaceFormat.Color);
             DepthStencil = new DepthStencilBuffer(GFX.Device, renderView.ColorMap.Width, renderView.ColorMap.Height, GFX.Device.DepthStencilBuffer.Format);
@@ -47,31 +70,18 @@ namespace Gaia.Rendering
             nullAlbedo.SetData<Color>(whiteColor);
             nullNormal = new Texture2D(GFX.Device, 1, 1, 1, TextureUsage.None, SurfaceFormat.Color);
             nullNormal.SetData<Color>(normalColor);
+            */
         }
 
-        public void AddElement(TerrainClimate climate, TerrainRenderElement element)
+        public override void AddElement(TerrainClimate climate, TerrainRenderElement element)
         {
             if (!Elements.ContainsKey(climate))
                 Elements.Add(climate, new Queue<TerrainRenderElement>());
 
             Elements[climate].Enqueue(element);
-
-            ElementsToProcess.Enqueue(element);
         }
 
-        void DrawElement(TerrainRenderElement element)
-        {
-            //for (int i = 0; i < element.Elements.Length; i++)
-            {
-                RenderElement currElem = element.Element;
-                GFX.Device.VertexDeclaration = currElem.VertexDec;
-                GFX.Device.Indices = currElem.IndexBuffer;
-                GFX.Device.Vertices[0].SetSource(currElem.VertexBuffer, 0, currElem.VertexStride);
-                GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, currElem.Transform);
-                GFX.Device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, currElem.StartVertex, currElem.VertexCount, 0, currElem.PrimitiveCount);
-            }
-        }
-
+        /*
         void BlendElement(TerrainClimate climate, TerrainRenderElement element, bool performAlphaBlend)
         {
             int startIndex = (performAlphaBlend) ? 1 : 0;
@@ -97,7 +107,7 @@ namespace Gaia.Rendering
                     break;
             }
         }
-
+        
         public void PerformBlending()
         {
             DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
@@ -147,7 +157,7 @@ namespace Gaia.Rendering
             GFX.Device.SetRenderTarget(1, null);
             GFX.Device.DepthStencilBuffer = dsOld;
         }
-
+        */
         public override void Render()
         {
             
@@ -155,21 +165,75 @@ namespace Gaia.Rendering
             GFX.Device.RenderState.DepthBufferEnable = true;
             GFX.Device.RenderState.DepthBufferWriteEnable = true;
             GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;
+            GFX.Device.VertexDeclaration = GFXVertexDeclarations.PDec;
 
             terrainShader.SetupShader();
             GFX.Inst.SetTextureFilter(0, TextureFilter.Linear);
             GFX.Inst.SetTextureFilter(1, TextureFilter.Linear);
-            GFX.Device.Textures[0] = BlendAlbedo.GetTexture();
-            GFX.Device.Textures[1] = BlendNormal.GetTexture();
-            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(BlendAlbedo.Width, BlendAlbedo.Height));
-
-            while(ElementsToProcess.Count > 0)
+            //GFX.Device.Textures[0] = BlendAlbedo.GetTexture();
+            //GFX.Device.Textures[1] = BlendNormal.GetTexture();
+            //
+            for (int i = 0; i < Elements.Count; i++)
             {
-                TerrainRenderElement element = ElementsToProcess.Dequeue();
-                DrawElement(element);
+                TerrainClimate currKey = Elements.Keys[i];
+                const int texOffset = 2;
+                for (int j = 0; j < 4; j++)
+                {
+                    int baseIndex = texOffset + j;
+                    GFX.Device.Textures[baseIndex] = currKey.BaseTextures[j].GetTexture();
+                    GFX.Inst.SetTextureFilter(baseIndex, TextureFilter.Anisotropic);
+                    GFX.Inst.SetTextureAddressMode(baseIndex, TextureAddressMode.Wrap);
+
+                    int normIndex = texOffset + 4 + j;
+                    GFX.Device.Textures[normIndex] = currKey.NormalTextures[j].GetTexture();
+                    GFX.Inst.SetTextureFilter(normIndex, TextureFilter.Anisotropic);
+                    GFX.Inst.SetTextureAddressMode(normIndex, TextureAddressMode.Wrap);
+                }
+                while (Elements[currKey].Count > 0)
+                {
+                    TerrainRenderElement element = Elements[currKey].Dequeue();
+                    GFX.Device.Textures[0] = element.BlendMaps[0];
+                    GFX.Device.Textures[1] = element.NormalMap;
+                    GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(element.NormalMap.Width, element.NormalMap.Height));
+                    DrawElement(element);
+                }
             }
             GFX.Device.Textures[0] = null;
-            GFX.Device.Textures[1] = null;
+        }
+    }
+
+    public class TerrainShadowElementManager : TerrainElementManager
+    {
+        Queue<TerrainRenderElement> Elements = new Queue<TerrainRenderElement>();
+
+        Shader terrainShader;
+
+        public TerrainShadowElementManager(RenderView renderView)
+            : base(renderView)
+        {
+            terrainShader = ResourceManager.Inst.GetShader("ShadowTerrainVSM");
+        }
+
+        public override void AddElement(TerrainClimate climate, TerrainRenderElement element)
+        {
+            Elements.Enqueue(element);
+        }
+
+        public override void Render()
+        {
+            GFX.Device.RenderState.CullMode = CullMode.CullCounterClockwiseFace;
+            GFX.Device.RenderState.DepthBufferEnable = true;
+            GFX.Device.RenderState.DepthBufferWriteEnable = true;
+            GFX.Device.RenderState.DepthBufferFunction = CompareFunction.LessEqual;
+            GFX.Device.VertexDeclaration = GFXVertexDeclarations.PDec;
+
+            terrainShader.SetupShader();
+
+            while (Elements.Count > 0)
+            {
+                TerrainRenderElement element = Elements.Dequeue();
+                DrawElement(element);
+            }
         }
     }
 }

@@ -21,6 +21,8 @@ namespace Gaia.Rendering.RenderViews
             this.viewPort = viewport;
             this.splitIndex = splitIndex;
             this.Name = "ShadowRenderView" + this.GetHashCode();
+
+            this.ElementManagers.Add(RenderPass.Terrain, new TerrainShadowElementManager(this));
             this.ElementManagers.Add(RenderPass.Shadows, new ShadowElementManager(this));
             ShadowElementManager foliageManager = new ShadowElementManager(this);
             foliageManager.SetShaders(ResourceManager.Inst.GetShader("ShadowVSMTransparent"), ResourceManager.Inst.GetShader("ShadowVSMTransparentInst"));

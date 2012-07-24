@@ -131,6 +131,7 @@ namespace Gaia.Rendering
             InitializeSamplerStates();
             InitializeTextures();
             InitializeSimulations();
+            device.PresentationParameters.FullScreenRefreshRateInHz = 60;
         }
 
         public void ResetState()

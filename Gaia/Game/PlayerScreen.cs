@@ -37,9 +37,9 @@ namespace Gaia.Game
 
         Transform playerTransform;
 
-        public PlayerScreen(Scene scene) : base()
+        public PlayerScreen() : base()
         {
-            this.scene = scene;
+            this.scene = new Scene();
             compass = new UICompass();
             compass.Scale = new Vector2(0.35f, 0.05f);
             compass.Position = new Vector2(0, -0.85f);
@@ -144,11 +144,14 @@ namespace Gaia.Game
 
         public override void OnUpdate(float timeDT)
         {
+            scene.Update();
             Entity camera = scene.FindEntity("MainCamera");
+            
             if (camera != null)
             {
                 playerTransform = camera.Transformation;
                 compass.SetTransformation(playerTransform);
+                scoreLabel.SetText(camera.Transformation.GetPosition().ToString());
                 PerformInteraction();
             }
 
@@ -169,6 +172,12 @@ namespace Gaia.Game
                 DisplayJournalStatus(timeDT);
             
             base.OnUpdate(timeDT);
+        }
+
+        public override void OnRender()
+        {
+            scene.Render();
+            base.OnRender();
         }
     }
 }

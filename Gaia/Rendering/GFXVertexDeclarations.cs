@@ -173,11 +173,11 @@ namespace Gaia.Rendering
     {
         public Vector3 Position;
         public Vector3 Normal;
-        public Vector2 Texcoord;
+        public Vector3 Texcoord;
         public Vector3 Tangent;
         public float Index;
 
-        public static int SizeInBytes = (12) * sizeof(float);
+        public static int SizeInBytes = (13) * sizeof(float);
 
         public static VertexElement[] VertexElements = new VertexElement[]
          {
@@ -187,16 +187,25 @@ namespace Gaia.Rendering
              new VertexElement( 0, sizeof(float)*3, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Normal, 0),
-             new VertexElement( 0, sizeof(float)*6, VertexElementFormat.Vector2, 
+             new VertexElement( 0, sizeof(float)*6, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.TextureCoordinate, 0),
-             new VertexElement( 0, sizeof(float)*8, VertexElementFormat.Vector3, 
+             new VertexElement( 0, sizeof(float)*9, VertexElementFormat.Vector3, 
                                       VertexElementMethod.Default, 
                                       VertexElementUsage.Tangent, 0),
-             new VertexElement( 0, sizeof(float)*11, VertexElementFormat.Single,
+             new VertexElement( 0, sizeof(float)*12, VertexElementFormat.Single,
                                       VertexElementMethod.Default, VertexElementUsage.TextureCoordinate, 1),
          };
-        public VertexPNTTI(Vector3 position, Vector3 normal, Vector2 texCoord, Vector3 tangent, float index)
+        public VertexPNTTI(Vector3 position, Vector3 normal, Vector2 texCoord, Vector3 tangent, float index, float binormalSign)
+        {
+            Position = position;
+            Normal = normal;
+            Texcoord = new Vector3(texCoord, binormalSign);
+            Tangent = tangent;
+            Index = index;
+        }
+
+        public VertexPNTTI(Vector3 position, Vector3 normal, Vector3 texCoord, Vector3 tangent, float index)
         {
             Position = position;
             Normal = normal;

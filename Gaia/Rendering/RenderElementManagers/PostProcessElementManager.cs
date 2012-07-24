@@ -149,9 +149,10 @@ namespace Gaia.Rendering
             GFX.Inst.SetTextureFilter(1, TextureFilter.Linear);
             GFX.Device.Textures[1] = mainRenderView.GetSkyTexture();
 
-            float fogStart = 80;
-            float fogEnd = 300;
-            float skyStart = 600;
+            float farplane = renderView.GetFarPlane();
+            float fogStart = farplane*0.14f;
+            float fogEnd = farplane*0.3f;
+            float skyStart = farplane*0.6f;
             GFX.Device.SetPixelShaderConstant(0, new Vector4(fogStart, fogEnd, fogEnd, skyStart)); //Fog parameters 
             //Vector4 fogColor = (float)-Math.Log(2)*Vector4.One / new Vector4(0.0549f, 0.4534f, 0.8512f, 1.0f);
             Vector4 fogColor = new Vector4(0.0960f, 0.3888f, 0.6280f, 1.0f);

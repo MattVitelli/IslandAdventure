@@ -40,8 +40,6 @@ namespace Gaia.SceneGraph
         public Scene()
         {
             InitializeScene();
-            //LoadScene("Level1.lvl");
-            //MainCamera = (Camera)FindEntity("MainCamera");
         }
 
         public Vector3 GetMainLightDirection()
@@ -171,7 +169,7 @@ namespace Gaia.SceneGraph
             Player player = new Player();
             player.SetEnabled(true);
             player.SetControllable(true);
-            Entities.Add("player", player);
+            Entities.Add("Player", player);
         }
 
         void InitializePhysics()
@@ -266,16 +264,16 @@ namespace Gaia.SceneGraph
             GC.Collect();
             */
 
-            for (int i = 0; i < 300; i++)
+            for (int i = 0; i < 6000; i++)
             {
                 Model tree = new Model("Cecropia");
-                NormalTransform transform = new NormalTransform();
-                tree.Transformation = transform;
+                //NormalTransform transform = new NormalTransform();
+                //tree.Transformation = transform;
                 Vector3 pos;
                 Vector3 normal;
                 MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
-                transform.ConformToNormal(normal);
-                transform.SetPosition(pos);
+                //transform.ConformToNormal(normal);
+                tree.Transformation.SetPosition(pos);
                 AddEntity("T", tree);
             }
             GC.Collect();
@@ -289,8 +287,8 @@ namespace Gaia.SceneGraph
             MainLight = new Sunlight();
             //MainTerrain = new TerrainVoxel();
 
-            MainTerrain = new TerrainHeightmap("Textures/level1_hm.png", 0, 0.5f);
-            MainTerrain.Transformation.SetScale(new Vector3(1, 1.0f, 1) * 512.0f);
+            MainTerrain = new TerrainHeightmap("Textures/Island_HM.png", 0, 200.0f);
+            MainTerrain.Transformation.SetScale(new Vector3(1, 200.0f/512.0f, 1) * 512.0f);
             
 
             MainPlayer = new Camera();
@@ -305,7 +303,7 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
             
-            //CreateForest();
+            CreateForest();
 
             //Entities.Add("Grass", new ShapePlacement());
 
@@ -335,8 +333,8 @@ namespace Gaia.SceneGraph
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
 
-            Raptor raptor = new Raptor();
-            Entities.Add("Raptor", raptor);
+            //Raptor raptor = new Raptor();
+            //Entities.Add("Raptor", raptor);
 
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);

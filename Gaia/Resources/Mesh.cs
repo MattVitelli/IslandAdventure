@@ -22,10 +22,16 @@ namespace Gaia.Resources
 
         public RenderElement Element;
 
-        public Imposter()
+        public Matrix Scale;
+
+        public SortedList<RenderView, List<Matrix>> cachedTransforms = new SortedList<RenderView, List<Matrix>>();
+
+        public Imposter(Mesh mesh)
         {
             Element = GFXPrimitives.CreateBillboardElement();
             ImposterMaterial = new Material();
+            Vector3 scale = (mesh.GetBounds().Max - mesh.GetBounds().Min) * 0.5f;
+            Scale = Matrix.CreateScale(scale);
         }
     }
 
@@ -97,6 +103,7 @@ namespace Gaia.Resources
             public Vector3 Normal;
             public Vector2 TexCoord;
             public Vector3 Tangent;
+            public Vector3 Tangent2;
             public int BoneIndex;
             public int Weight;
 
@@ -122,8 +129,20 @@ namespace Gaia.Resources
                 Vector2 s = v1.TexCoord - TexCoord;
                 Vector2 t = v2.TexCoord - TexCoord;
 
-                float r = 1.0F / (t.X * s.Y - t.Y * s.X);
-                Tangent += new Vector3(s.Y * d1.X - t.Y * d0.X, s.Y * d1.Y - t.Y * d0.Y, s.Y * d1.Z - t.Y * d0.Z) * r;
+                float r = 1.0F / (s.X * t.Y - t.X * s.Y); 
+
+                Vector3 sdir = new Vector3(t.Y * d0.X - s.Y * d1.X, t.Y * d0.Y - s.Y * d1.Y, t.Y * d0.Z - s.Y * d1.Z) * r;
+                Vector3 tdir = new Vector3(s.X * d1.X - t.X * d0.X, s.X * d1.Y - t.X * d0.Y, s.X * d1.Z - t.X * d0.Z) * r;
+
+
+                Tangent += sdir;// new Vector3(s.Y * d1.X - t.Y * d0.X, s.Y * d1.Y - t.Y * d0.Y, s.Y * d1.Z - t.Y * d0.Z) * r;
+                Tangent2 += tdir;
+                Weight++;
+            }
+            public void AddTangent(Vector3 tangentDir, Vector3 tangentDir2)
+            {
+                Tangent += tangentDir;
+                Tangent2 += tangentDir2;
                 Weight++;
             }
         }
@@ -253,8 +272,10 @@ namespace Gaia.Resources
                     for (int i = 0; i < triangleCount; i++)
                     {
                         vertices[triList[i].vertex0].AddTangent(vertices[triList[i].vertex1], vertices[triList[i].vertex2]);
-                        vertices[triList[i].vertex1].AddTangent(vertices[triList[i].vertex0], vertices[triList[i].vertex2]);
-                        vertices[triList[i].vertex2].AddTangent(vertices[triList[i].vertex0], vertices[triList[i].vertex1]);
+                        vertices[triList[i].vertex1].AddTangent(vertices[triList[i].vertex0].Tangent, vertices[triList[i].vertex0].Tangent2);
+                        vertices[triList[i].vertex2].AddTangent(vertices[triList[i].vertex0].Tangent, vertices[triList[i].vertex0].Tangent2);
+                        //vertices[triList[i].vertex1].AddTangent(vertices[triList[i].vertex0], vertices[triList[i].vertex2]);
+                        //vertices[triList[i].vertex2].AddTangent(vertices[triList[i].vertex0], vertices[triList[i].vertex1]);
                     }
 
                     VertexPNTTI[] verts = new VertexPNTTI[vertexCount];
@@ -266,8 +287,10 @@ namespace Gaia.Resources
                         tangent = (tangent - N * Vector3.Dot(N, tangent));
                         tangent.Normalize();
                         vertices[i].Tangent = tangent;
+                        vertices[i].Tangent2 /= vertices[i].Weight;
                         vertices[i].Weight = 1;
-                        verts[i] = new VertexPNTTI(vertices[i].Position, vertices[i].Normal, vertices[i].TexCoord, vertices[i].Tangent, vertices[i].BoneIndex);
+                        float binormSign = (Vector3.Dot(Vector3.Cross(N, tangent), vertices[i].Tangent2) < 0.0f) ? -1.0f : 1.0f;
+                        verts[i] = new VertexPNTTI(vertices[i].Position, vertices[i].Normal, vertices[i].TexCoord, vertices[i].Tangent, vertices[i].BoneIndex, binormSign);
                     }
                     vertexBuffer = new VertexBuffer(GFX.Device, vertexCount * VertexPNTTI.SizeInBytes, BufferUsage.None);
                     vertexBuffer.SetData<VertexPNTTI>(verts);
@@ -634,14 +657,22 @@ namespace Gaia.Resources
                     RenderView view = parts[i].cachedTransforms.Keys[j];
                     RenderElement tempElem = parts[i].renderElementInstanced;
                     tempElem.Transform = parts[i].cachedTransforms[view].ToArray();
-                    if (tempElem.Transform.Length > 1)
-                    {
-                        int m = 0;
-                    }
                     view.AddElement(parts[i].material, tempElem);
                     parts[i].cachedTransforms[view].Clear();
                 }
             }
+            if (imposterGeometry != null)
+            {
+                for (int i = 0; i < imposterGeometry.cachedTransforms.Count; i++)
+                {
+                    RenderView view = imposterGeometry.cachedTransforms.Keys[i];
+                    RenderElement tempElem = imposterGeometry.Element;
+                    tempElem.Transform = imposterGeometry.cachedTransforms[view].ToArray();
+                    view.AddElement(imposterGeometry.ImposterMaterial, tempElem);
+                    imposterGeometry.cachedTransforms[view].Clear();
+                }
+            }
+
         }
 
         public void Render(Matrix transform, RenderView view, bool performCulling)
@@ -654,23 +685,14 @@ namespace Gaia.Resources
                 BoundingFrustum frustum = view.GetFrustum();
                 Matrix oldMat = frustum.Matrix;
                 frustum.Matrix = transform * view.GetViewProjection();
-                /*
-                if (imposterGeometry != null)
+                
+                if (imposterGeometry != null && frustum.Contains(meshBounds) != ContainmentType.Disjoint)
                 {
-                    RenderElement srcElem = imposterGeometry.Element;
-                    RenderElement element = new RenderElement();
-                    element.IndexBuffer = srcElem.IndexBuffer;
-                    element.PrimitiveCount = srcElem.PrimitiveCount;
-                    element.StartVertex = srcElem.StartVertex;
-                    element.VertexBuffer = srcElem.VertexBuffer;
-                    element.VertexCount = srcElem.VertexCount;
-                    element.VertexDec = srcElem.VertexDec;
-                    element.VertexStride = srcElem.VertexStride;
-                    element.Transform = new Matrix[1] { transform };
-                    view.AddElement(imposterGeometry.ImposterMaterial, element);
+                    if (!imposterGeometry.cachedTransforms.ContainsKey(view))
+                        imposterGeometry.cachedTransforms.Add(view, new List<Matrix>());
+                    imposterGeometry.cachedTransforms[view].Add(imposterGeometry.Scale * transform);
                 }
-                */
-                //else
+                else
                 {
                     for (int i = 0; i < parts.Length; i++)
                     {
@@ -733,7 +755,7 @@ namespace Gaia.Resources
                 }
             }
         }
-
+        /*
         public void Render(Matrix transform, SortedList<string, AnimationNode> animNodes, RenderView view, bool performCulling)
         {
             if (performCulling)
@@ -770,7 +792,7 @@ namespace Gaia.Resources
                 }
             }
         }
-
+        */
         void CreateInstanceData()
         {
             VertexPNTTI[] vertData = new VertexPNTTI[vertexCount];
@@ -856,7 +878,7 @@ namespace Gaia.Resources
             int textureWidth = textureSize * numViews;
             int textureHeight = textureSize;
 
-            imposterGeometry = new Imposter();
+            imposterGeometry = new Imposter(this);
             imposterGeometry.BaseMap = new RenderTarget2D(GFX.Device, textureWidth, textureHeight, 1, SurfaceFormat.Color);
             imposterGeometry.NormalMap = new RenderTarget2D(GFX.Device, textureWidth, textureHeight, 1, SurfaceFormat.Vector2);
             

@@ -66,9 +66,8 @@ namespace Gaia.TerrainHelper
 
         TerrainHeightmap Parent;
 
-        Vector2 minmaxY = new Vector2(0, 1);
-        BoundingBox box;
-        public BoundingBox Bounds { get { return box; } }
+        BoundingBox bounds;
+        public BoundingBox Bounds { get { return bounds; } }
 
         #endregion
 
@@ -193,6 +192,8 @@ namespace Gaia.TerrainHelper
             int zmin = ClipRegion.Top;
             int zmax = ClipRegion.Bottom;
 
+            bounds.Min = new Vector3(xmin, 0, zmin);
+            bounds.Max = new Vector3(xmax, Parent.MaximumHeight, zmax);
             // Update now the L shaped region. This replaces the old data with the new one.
             if (dz > 0)
             {
@@ -333,9 +334,6 @@ namespace Gaia.TerrainHelper
                 float height = Parent.heightValues[k];
                 Vertices[index].Position.Y = height;
                 Vertices[index].Position.W = height;
-
-                minmaxY.Y = Math.Max(minmaxY.Y, height);
-                minmaxY.X = Math.Min(minmaxY.X, height);
 
                 if (l >= 0 && l < Parent.heightValues.Length && j >= 0 && j < Parent.heightValues.Length)
                 {
@@ -574,14 +572,15 @@ namespace Gaia.TerrainHelper
         {
             // Setup the boundingbox of the block to fill.
             // The lowest value is zero, the highest is the scalesize.
+            BoundingBox box;
             box.Min.X = left;
-            box.Min.Y = minmaxY.X;
+            box.Min.Y = 0;
             box.Min.Z = top;
             box.Max.X = right;
-            box.Max.Y = minmaxY.Y;
+            box.Max.Y = Parent.MaximumHeight;
             box.Max.Z = bot;
 
-            if (Parent.GetScene().MainCamera.GetFrustum().Contains(box) != ContainmentType.Disjoint)
+            //if (Parent.GetScene().MainCamera.GetFrustum().Contains(box) != ContainmentType.Disjoint)
             {
                 // Same moduloprocedure as when we updated the vertices.
                 // Maps the terrainposition to arrayposition.

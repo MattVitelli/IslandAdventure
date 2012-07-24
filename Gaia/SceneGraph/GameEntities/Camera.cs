@@ -28,9 +28,9 @@ namespace Gaia.SceneGraph.GameEntities
         float aspectRatio;
         float fieldOfView;
 
-        float forwardSpeed = 8.5f;
+        float forwardSpeed = 18.5f;
         float backwardSpeed = 7.5f;
-        float strafeSpeed = 8f;
+        float strafeSpeed = 15f;
         float targetDistance = 15;
 
         int cameraBitFlag = (int)CameraFlags.USEINPUT;
@@ -60,7 +60,7 @@ namespace Gaia.SceneGraph.GameEntities
             scene.MainCamera = renderView;
             scene.AddRenderView(renderView);
 
-            fieldOfView = MathHelper.ToRadians(70);
+            fieldOfView = MathHelper.ToRadians(60);
             aspectRatio = GFX.Inst.DisplayRes.X / GFX.Inst.DisplayRes.Y;
         }
 
@@ -118,7 +118,7 @@ namespace Gaia.SceneGraph.GameEntities
 
             float nearPlaneSky = 0.075f;
             float nearPlane = 0.075f;
-            float farPlane = 1500;
+            float farPlane = 850;
 
             renderView.SetPosition(this.Transformation.GetPosition());
             renderView.SetView(Matrix.CreateLookAt(this.Transformation.GetPosition(), target, Vector3.Up));

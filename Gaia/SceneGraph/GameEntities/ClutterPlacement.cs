@@ -70,7 +70,7 @@ namespace Gaia.SceneGraph.GameEntities
         SortedList<int, GrassPatch> patches = new SortedList<int, GrassPatch>();
         
         int numVisiblePatches = 3;
-        int grassPerPatch = 32;
+        int grassPerPatch = 64;
         int numPatchesX;
         int numPatchesZ;
 
@@ -90,8 +90,8 @@ namespace Gaia.SceneGraph.GameEntities
 
         public void BuildPlantSpots()
         {
-            int width = terrain.GetWidth();
-            int depth = terrain.GetDepth();
+            int width = terrain.GetWidth()-1;
+            int depth = terrain.GetDepth()-1;
             numPatchesX = width / grassPerPatch;
             numPatchesZ = depth / grassPerPatch;
             plantSpots = new ClimateInfo[numPatchesX * numPatchesZ];
@@ -118,8 +118,8 @@ namespace Gaia.SceneGraph.GameEntities
                     int startX = i * grassPerPatch;
                     int startZ = j * grassPerPatch;
 
-                    int endX = startX + grassPerPatch;
-                    int endZ = startZ + grassPerPatch;
+                    int endX = Math.Min(startX + grassPerPatch, width-1);
+                    int endZ = Math.Min(startZ + grassPerPatch, depth-1);
 
                     for (int k = 0; k < blendLayers.Count; k++)
                     {
@@ -148,19 +148,22 @@ namespace Gaia.SceneGraph.GameEntities
                         int currBlendIndex = k * 4;
                         for (int l = 0; l < locations.Length; l++)
                         {
-                            if(locations[l].Count > 0 && climate.ClutterMaterials[currBlendIndex + l] != null)
+                            if (locations[l].Count > 0 && climate.ClutterMaterials[currBlendIndex + l] != null)
                                 plantSpots[index].AvailableSpots.Add(currBlendIndex + l, locations[l]);
                         }
                     }
                     
                 }
             }
+
+            for (int i = 0; i < plantSpots.Length; i++)
+                plantSpots[i].ShufflePlantSpots();
         }
 
         public GrassPatch CreatePatchAtPoint(int patchX, int patchZ)
         {
-            int width = terrain.GetWidth();
-            int depth = terrain.GetDepth();
+            int width = terrain.GetWidth()-1;
+            int depth = terrain.GetDepth()-1;
 
             int xOrigin = patchX * grassPerPatch;
             int zOrigin = patchZ * grassPerPatch;
@@ -194,8 +197,9 @@ namespace Gaia.SceneGraph.GameEntities
                     float height = terrain.GetHeightValue(loc.X, loc.Y);
                     float randX = (float)loc.X + (float)RandomHelper.RandomGen.NextDouble();
                     float randZ = (float)loc.Y + (float)RandomHelper.RandomGen.NextDouble();
-                    Vector3 posWorldSpace = Vector3.Transform(new Vector3((randX / (float)width) * 2.0f - 1.0f, height, (randZ / (float)depth) * 2.0f - 1.0f), terrain.Transformation.GetTransform());
-                    currPatch.Elements[i].Transform[j] = Matrix.CreateScale(5.0f);
+                    float randScale = MathHelper.Lerp(0.95f, 3.0f, (float)RandomHelper.RandomGen.NextDouble());
+                    Vector3 posWorldSpace = new Vector3(randX, height, randZ);// Vector3.Transform(new Vector3((randX / (float)width) * 2.0f - 1.0f, height, (randZ / (float)depth) * 2.0f - 1.0f), terrain.Transformation.GetTransform());
+                    currPatch.Elements[i].Transform[j] = Matrix.CreateScale(randScale);
                     currPatch.Elements[i].Transform[j].Translation = posWorldSpace;
 
                     minPos = Vector3.Min(posWorldSpace, minPos);
@@ -212,9 +216,9 @@ namespace Gaia.SceneGraph.GameEntities
         public void PlaceGrass()
         {
             Vector3 camPos = view.GetPosition();
-            Vector3 camPosTerrain = Vector3.Transform(camPos, terrain.Transformation.GetObjectSpace());
-            camPosTerrain = (camPosTerrain + Vector3.One) * 0.5f;
-            
+            //Vector3 camPosTerrain = Vector3.Transform(camPos, terrain.Transformation.GetObjectSpace());
+            //camPosTerrain = (camPosTerrain + Vector3.One) * 0.5f;
+            Vector3 camPosTerrain = camPos / new Vector3(terrain.GetWidth(), 1, terrain.GetDepth());
             int camX = (int)MathHelper.Clamp(camPosTerrain.X * numPatchesX, 0, numPatchesX - 1);
             int camZ = (int)MathHelper.Clamp(camPosTerrain.Z * numPatchesZ, 0, numPatchesZ - 1);
 
@@ -240,8 +244,8 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnUpdate()
         {
             Vector3 camPos = view.GetPosition();
-            Vector3 halfBox = new Vector3((float)grassPerPatch / (float)terrain.GetWidth(), 1, (float)grassPerPatch / (float)terrain.GetDepth());
-            halfBox *= (float)numVisiblePatches*0.75f*terrain.Transformation.GetScale();
+            Vector3 halfBox = new Vector3(grassPerPatch, terrain.MaximumHeight*0.5f, grassPerPatch);// new Vector3((float)grassPerPatch / (float)terrain.GetWidth(), 1, (float)grassPerPatch / (float)terrain.GetDepth());
+            halfBox *= (float)numVisiblePatches*0.75f;//*terrain.Transformation.GetScale();
             BoundingBox clipBounds = new BoundingBox(camPos-halfBox, camPos+halfBox);
 
             for (int i = 0; i < patches.Keys.Count; i++)
@@ -272,7 +276,8 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnRender(RenderView renderView)
         {
             BoundingFrustum frustum = renderView.GetFrustum();
-            
+            if (renderView.GetRenderType() != RenderViewType.MAIN)
+                return;
             for (int j = 0; j < patches.Count; j++)
             {
                 if (patches.Values[j].CanRender && frustum.Contains(patches.Values[j].Bounds) != ContainmentType.Disjoint)

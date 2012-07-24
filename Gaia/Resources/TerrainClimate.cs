@@ -15,7 +15,7 @@ namespace Gaia.Resources
 
         public string Name { get { return name; } }
 
-        public static int MAX_BLEND_ZONES = 8;
+        public static int MAX_BLEND_ZONES = 4;
         public float[] blendZones = new float[MAX_BLEND_ZONES];
         public float[] gradientCoeffs = new float[MAX_BLEND_ZONES];
         public float[] curvatureCoeffs = new float[MAX_BLEND_ZONES];

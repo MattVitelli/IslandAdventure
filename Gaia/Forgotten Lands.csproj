@@ -120,6 +120,7 @@
     <Compile Include="Editors\ModelSelector.Designer.cs">
       <DependentUpon>ModelSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="Game\HuntScreen.cs" />
     <Compile Include="Game\InteractBody.cs" />
     <Compile Include="Game\InteractEntity.cs" />
     <Compile Include="Game\Chest.cs" />
@@ -175,6 +176,7 @@
     <Compile Include="Resources\SoundEngine.cs" />
     <Compile Include="Resources\TerrainClimate.cs" />
     <Compile Include="Resources\TextureResource.cs" />
+    <Compile Include="Resources\WeaponDatablock.cs" />
     <Compile Include="SceneGraph\GameEntities\Actor.cs" />
     <Compile Include="SceneGraph\GameEntities\AnimatedModel.cs" />
     <Compile Include="SceneGraph\GameEntities\Camera.cs" />

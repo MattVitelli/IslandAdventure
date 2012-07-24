@@ -36,7 +36,7 @@ namespace Gaia.UI
                 {
                     for (int i = 0; i < displayItems.Length; i++)
                     {
-                        displayItems[i].SetButtonColor(itemColor);
+                        displayItems[i].SetTextColor(itemColor);
                     }
                 }
             }
@@ -93,9 +93,10 @@ namespace Gaia.UI
             float deltaHeight = textSize.Y;
             for (int i = 0; ((i < displayCount) && ((scrollIndex + i) < Items.Count)); i++)
             {
-                displayItems[i] = new UIButton(null, this.color, Items[scrollIndex + i]);
+                displayItems[i] = new UIButton(null, this.itemColor, Items[scrollIndex + i]);
                 displayItems[i].Position = new Vector2(this.position.X, maxSize.Y - deltaHeight * 2 * (i+1));
                 displayItems[i].Scale = new Vector2(scale.X, deltaHeight);
+                displayItems[i].SetTextColor(itemColor);
             }
         }
 
@@ -120,7 +121,7 @@ namespace Gaia.UI
             updateSlider = false;
             slider.SliderRatio = Math.Min((float)displayCount / (float)Items.Count, 1.0f);
             slider.Position = this.position + new Vector2(this.scale.X, 0);
-            slider.Scale = new Vector2(0.075f, this.scale.Y);
+            slider.Scale = new Vector2(0.05f, this.scale.Y);
         }
 
         public override void OnUpdate(float timeDT)

@@ -27,15 +27,15 @@ namespace Gaia
     public class GameCore : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
-        Scene mainScene; //Our default level
         LevelEditor editor;
-        PlayerScreen playerScreen;
+        UIScreen activeScreen;
 
         public GameCore()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1600;
+            graphics.PreferredBackBufferHeight = 900;
+            
             Content.RootDirectory = "Content";
         }
 
@@ -62,12 +62,13 @@ namespace Gaia
             new SoundEngine();
             new ResourceManager();
             ResourceManager.Inst.LoadResources();
-            
+
+            this.IsMouseVisible = true;
             GFX.Inst.GetGUI().DefaultFont = Content.Load<SpriteFont>("SimpleFont");
 
-            mainScene = new Scene();
-            playerScreen = new PlayerScreen(mainScene);
-            editor = new LevelEditor(mainScene);
+            //activeScreen = new HuntScreen();
+            activeScreen = new PlayerScreen();
+            //editor = new LevelEditor(mainScene);
             /*
             using (FileStream fs = new FileStream("Graphics.txt", FileMode.Create))
             {
@@ -218,7 +219,7 @@ namespace Gaia
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if(!editor.Visible)
+            //if(!editor.Visible)
                 ClampMouse();
             Time.GameTime.Elapse(gameTime.ElapsedGameTime.Milliseconds);
             Time.GameTime.DT = (float)gameTime.ElapsedGameTime.Ticks / (float)TimeSpan.TicksPerSecond;
@@ -235,8 +236,8 @@ namespace Gaia
                     editor.Hide();
             }
 
-            mainScene.Update();
-            playerScreen.OnUpdate(Time.GameTime.DT);
+
+            activeScreen.OnUpdate(Time.GameTime.DT);
 
             base.Update(gameTime);
         }
@@ -252,8 +253,8 @@ namespace Gaia
             GFX.Inst.AdvanceSimulations((float)gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_TIME, Vector4.One*Time.RenderTime.TotalTime);
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_TIME, Vector4.One * Time.RenderTime.TotalTime);
-            mainScene.Render();
-            playerScreen.OnRender();
+            GFX.Device.Clear(Color.TransparentBlack);
+            activeScreen.OnRender();
             GFX.Inst.RenderGUI();
 
             base.Draw(gameTime);

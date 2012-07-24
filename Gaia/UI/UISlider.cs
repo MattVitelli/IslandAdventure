@@ -68,7 +68,7 @@ namespace Gaia.UI
         {
             Vector2 minSize = this.position - this.scale + sliderButton.Scale;
             Vector2 maxSize = this.position + this.scale - sliderButton.Scale;
-            return 1.0f - (sliderButton.Position.Y - minSize.Y) / (maxSize.Y - minSize.Y);
+            return MathHelper.Clamp(1.0f - (sliderButton.Position.Y - minSize.Y) / (maxSize.Y - minSize.Y), 0, 1);
         }
 
         public override void OnUpdate(float timeDT)

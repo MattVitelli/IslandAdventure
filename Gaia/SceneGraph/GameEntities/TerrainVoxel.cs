@@ -22,7 +22,7 @@ namespace Gaia.SceneGraph.GameEntities
         public byte IsoValue = 127; //Defines density field isosurface cutoff value (ie the transition between solid and empty space)
                                     //so if a voxel had an element of 127 or lower, that would be empty space. A value higher than 127
                                     //Would be solid space.
-        public int VoxelGridSize = 16; //Defines how many voxel geometries we have (used to balance performance)
+        public int VoxelGridSize = 8; //Defines how many voxel geometries we have (used to balance performance)
         public int DensityFieldWidth = 129; //Density field is (2^n)+1 in size. (e.g. 65, 129, 257, 513) 
         public int DensityFieldHeight;
         public int DensityFieldDepth;
@@ -44,7 +44,7 @@ namespace Gaia.SceneGraph.GameEntities
         Gaia.Resources.Material terrainMaterial;
 
         Matrix textureMatrix = Matrix.Identity;
-        float TerrainSize = 256;
+        float TerrainSize = 512;
 
         RenderTarget2D srcTarget;
         Texture3D[] noiseTextures;
@@ -62,7 +62,7 @@ namespace Gaia.SceneGraph.GameEntities
         {
             Transformation.SetScale(Vector3.One * TerrainSize);
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
-            GenerateFloatingIslands(128);
+            GenerateFloatingIslands(64);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
             climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
         }
@@ -813,7 +813,7 @@ namespace Gaia.SceneGraph.GameEntities
             BoundingFrustum frustum = view.GetFrustum();
             for (int i = 0; i < Voxels.Length; i++)
             {
-                if (frustum.Contains(VoxelBounds[i]) != ContainmentType.Disjoint && Voxels[i].CanRender)
+                if (Voxels[i].CanRender && frustum.Contains(VoxelBounds[i]) != ContainmentType.Disjoint)
                 {
                     view.AddElement(terrainMaterial, Voxels[i].renderElement);
                 }

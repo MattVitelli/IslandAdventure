@@ -53,12 +53,11 @@ namespace Gaia.Game
                 fpsModel.SetAnimationLayer("Pistol_Idle", 0.0f);
                 fpsModel.SetAnimationLayer("Pistol_Fire", 1.0f);
                 coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("Pistol_Fire").EndTime;
-                Vector3 ray = Vector3.Zero;
                 float dist;
                 CollisionSkin skin;
                 Vector3 pos, normal;
 
-                Segment seg = new Segment(muzzlePosition, muzzleDir * 200);
+                Segment seg = new Segment(muzzlePosition, muzzleDir * 50);
 
                 scene.GetPhysicsEngine().CollisionSystem.SegmentIntersect(out dist, out skin, out pos, out normal, seg, ignorePred);
                 if (skin != null)
@@ -67,7 +66,8 @@ namespace Gaia.Game
                     decal.SetMaterial("BulletMetal1");
                     decal.Normal = normal;
                     decal.Scale = new Vector2(0.25f, 0.25f);
-                    decal.Transformation.SetPosition(pos);
+                    Vector3 posNew = seg.Origin + seg.Delta * dist;
+                    decal.Transformation.SetPosition(posNew);
                     decal.IsPersistent = false;
                     scene.AddEntity("bullet", decal);
                     ParticleEffect bulletEffect = ResourceManager.Inst.GetParticleEffect("BulletEffect");

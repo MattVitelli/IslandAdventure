@@ -60,10 +60,10 @@ namespace Gaia.Rendering
                 Vector3 pos = new Vector3((float)Math.Cos(a), 0, (float)Math.Sin(a));
                 int index = i * 2;
                 vertices[index].Position = pos;
-                vertices[index].Texcoord = new Vector2(i * deltaTCX, 0);
+                vertices[index].Texcoord = new Vector3(i * deltaTCX, 0, 1);
                 //vertices[index].Normal +=
                 vertices[index + 1].Position = pos + Vector3.Up;
-                vertices[index + 1].Texcoord = new Vector2(i * deltaTCX, 1);
+                vertices[index + 1].Texcoord = new Vector3(i * deltaTCX, 1, 1);
             }
             /*
             vertices[numSides * 2].Position = new Vector4(Vector3.Up * -1, 1.0f);

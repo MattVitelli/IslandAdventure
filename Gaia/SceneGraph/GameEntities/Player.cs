@@ -39,6 +39,17 @@ namespace Gaia.SceneGraph.GameEntities
 
         void UpdateControls()
         {
+            if (InputManager.Inst.IsKeyDownOnce(GameKey.ToggleCamera))
+            {
+                isControllable = !isControllable;
+                isEnabled = isControllable;
+            }
+            if (InputManager.Inst.IsKeyDownOnce(GameKey.DropPlayerAtCamera))
+            {
+                isControllable = true;
+                isEnabled = true;
+                this.Transformation.SetPosition(camera.Transformation.GetPosition());
+            }
             if (isControllable)
             {
                 Vector3 velocity = Vector3.Zero;

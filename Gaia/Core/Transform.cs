@@ -36,6 +36,8 @@ namespace Gaia.Core
         public void SetPosition(Vector3 position)
         {
             this.position = position;
+            if(body != null)
+                body.MoveTo(position, Matrix.Identity);
             dirtyMatrix = true;
         }
 

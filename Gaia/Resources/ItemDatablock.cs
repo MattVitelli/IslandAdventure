@@ -37,6 +37,13 @@ namespace Gaia.Resources
             return canDrop;
         }
 
+        int price = 0;
+
+        public int GetPrice()
+        {
+            return price;
+        }
+
         void IResource.Destroy()
         {
         }
@@ -61,6 +68,9 @@ namespace Gaia.Resources
                         break;
                     case "candrop":
                         canDrop = bool.Parse(attrib.Value);
+                        break;
+                    case "price":
+                        price = int.Parse(attrib.Value);
                         break;
                 }
             }

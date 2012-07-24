@@ -62,7 +62,7 @@ namespace Gaia.Rendering.RenderViews
             this.ElementManagers.Add(RenderPass.FirstPersonPrepass, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.FirstPerson, new SceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Decal, new DecalElementManager(this));
-            this.ElementManagers.Add(RenderPass.Terrain, new TerrainElementManager(this));
+            this.ElementManagers.Add(RenderPass.Terrain, new TerrainSceneElementManager(this));
             this.ElementManagers.Add(RenderPass.Foliage, new FoliageElementManager(this));
         }
 
@@ -226,9 +226,9 @@ namespace Gaia.Rendering.RenderViews
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_EYEPOS, GetEyePosShader());
             GFX.Device.SetPixelShaderConstant(GFXShaderConstants.PC_EYEPOS, GetEyePosShader());
 
-            TerrainElementManager terrMgr = (TerrainElementManager)ElementManagers[RenderPass.Terrain];
+            TerrainSceneElementManager terrMgr = (TerrainSceneElementManager)ElementManagers[RenderPass.Terrain];
 
-            terrMgr.PerformBlending();
+            //terrMgr.PerformBlending();
 
             GFX.Device.SetRenderTarget(0, ColorMap);
             GFX.Device.SetRenderTarget(1, NormalMap);
