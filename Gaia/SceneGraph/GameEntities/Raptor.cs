@@ -79,22 +79,22 @@ namespace Gaia.SceneGraph.GameEntities
             float vel = velocityVector.Length();
             if (vel < 0.01f)
             {
-                model.SetAnimationLayer(IDLE_NAME, 1.0f);
+                model.GetAnimationLayer().AddAnimation(IDLE_NAME);//.SetAnimationLayer(IDLE_NAME, 1.0f);
             }
             else
             {
-                model.SetAnimationLayer(IDLE_NAME, 0.0f);
+                //model.SetAnimationLayer(IDLE_NAME, 0.0f);
                 float walkWeight = MathHelper.Clamp((3.5f - vel) / 3.5f, 0.0f, 1.0f);
                 float runWeight = 1.0f - walkWeight;
                 //model.SetAnimationLayer(WALK_NAME, walkWeight);
-                model.SetAnimationLayer(RUN_NAME, 1.0f);
-                model.SetAnimationLayer(ATTACK_NAME, 0.0f);
+                model.GetAnimationLayer().AddAnimation(RUN_NAME);//.SetAnimationLayer(RUN_NAME, 1.0f);
+                //model.SetAnimationLayer(ATTACK_NAME, 0.0f);
             }
             if (state == RaptorState.Attack)
             {
-                model.SetAnimationLayer(RUN_NAME, 0.0f);
-
-                model.SetAnimationLayer(MELEE_NAME, 1.0f);
+                //model.SetAnimationLayer(RUN_NAME, 0.0f);
+                model.GetAnimationLayer().AddAnimation(MELEE_NAME, true);
+                //model.SetAnimationLayer(MELEE_NAME, 1.0f);
             }
             //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
             if (velocityVector.Length() > 0.01f)

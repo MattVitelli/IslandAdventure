@@ -21,9 +21,10 @@ namespace Gaia.SceneGraph.GameEntities
         protected AnimationNode[] rootNodes;
         protected AnimationNode[] orderedNodes;
         protected SortedList<string, AnimationNode> nodes;
-        protected SortedList<string, AnimationLayer> animationLayers = new SortedList<string, AnimationLayer>();
+        //protected SortedList<string, AnimationLayer> animationLayers = new SortedList<string, AnimationLayer>();
         protected SortedList<string, Vector3> defaultTranslations = new SortedList<string, Vector3>();
         protected SortedList<string, Vector3> defaultRotations = new SortedList<string, Vector3>();
+        protected AnimationLayer mainAnimationLayer;
 
         Transform transform;
 
@@ -37,6 +38,11 @@ namespace Gaia.SceneGraph.GameEntities
         public BoundingBox GetMeshBounds()
         {
             return mesh.GetBounds();
+        }
+
+        public AnimationLayer GetAnimationLayer()
+        {
+            return mainAnimationLayer;
         }
 
         public void SetCustomMatrix(Matrix value)
@@ -70,6 +76,8 @@ namespace Gaia.SceneGraph.GameEntities
                 orderedNodes.Add(nodes[tempNodes[i].Name]);
             }
             this.orderedNodes = orderedNodes.ToArray();
+
+            mainAnimationLayer = new AnimationLayer(this);
         }
 
         public void SetTransform(Transform transform)
@@ -77,6 +85,7 @@ namespace Gaia.SceneGraph.GameEntities
             this.transform = transform;
         }
 
+        /*
         public void SetAnimationLayer(string name, float weight)
         {
             if (!animationLayers.ContainsKey(name))
@@ -92,6 +101,7 @@ namespace Gaia.SceneGraph.GameEntities
             if (animationLayers.ContainsKey(name))
                 animationLayers.Remove(name);
         }
+        */
 
         protected void UpdateAnimation(float timeDT)
         {
@@ -101,11 +111,13 @@ namespace Gaia.SceneGraph.GameEntities
                 nodes[currKey].Translation = defaultTranslations[currKey];
                 nodes[currKey].Rotation = defaultRotations[currKey];
             }
-
+            /*
             for (int i = 0; i < animationLayers.Count; i++)
             {
                 animationLayers.Values[i].UpdateAnimation(timeDT, this.nodes);
             }
+            */
+            mainAnimationLayer.UpdateAnimation(timeDT, this.nodes);
 
             for (int i = 0; i < rootNodes.Length; i++)
                 rootNodes[i].ApplyTransform(ref customMatrix);

@@ -209,6 +209,13 @@ namespace Gaia.Resources
                 {
                     frames[currKey][j].time = (frames[currKey][j].time - startTime) / fps;
                 }
+                //Note: The following code stores times as deltas. 
+                //The concept of absolute times in our animations is meaningless.
+                for (int j = frames[currKey].Length - 1; j > 0; j--)
+                {
+                    frames[currKey][j].time -= frames[currKey][j - 1].time;
+                }
+                frames[currKey][0].time = (startTime != 0.0f) ? (startTime / fps) : 0.3f;
             }
         }
 
@@ -217,6 +224,11 @@ namespace Gaia.Resources
             string[] keys = new string[animationFrames.Keys.Count];
             animationFrames.Keys.CopyTo(keys, 0);
             return keys;
+        }
+
+        public ModelBoneAnimationFrame[] GetKeyFrames(string name)
+        {
+            return animationFrames[name];
         }
 
         public void GetKeyFrameParameter(string name, out Vector3 pos, out Vector3 rot, float time)

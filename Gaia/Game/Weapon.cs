@@ -31,7 +31,7 @@ namespace Gaia.Game
             fpsModel.SetTransform(transform);
             Matrix weaponTransform = Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.PiOver2);
             fpsModel.SetCustomMatrix(weaponTransform);
-            fpsModel.SetAnimationLayer("Pistol_Idle", 1);
+            fpsModel.GetAnimationLayer().SetActiveAnimation("Pistol_Idle");//.SetAnimationLayer("Pistol_Idle", 1);
         }
 
         public void OnUpdate()
@@ -42,16 +42,17 @@ namespace Gaia.Game
             {
                 coolDownTimeRemaining -= Time.GameTime.ElapsedTime;
             }
-            else
-                fpsModel.SetAnimationLayer("Pistol_Idle", 1.0f);
+            //else
+            //    fpsModel.SetAnimationLayer("Pistol_Idle", 1.0f);
         }
 
         public void OnFire(Vector3 muzzlePosition, Vector3 muzzleDir)
         {
             if (coolDownTimeRemaining <= 0)
             {
-                fpsModel.SetAnimationLayer("Pistol_Idle", 0.0f);
-                fpsModel.SetAnimationLayer("Pistol_Fire", 1.0f);
+                //fpsModel.SetAnimationLayer("Pistol_Idle", 0.0f);
+                fpsModel.GetAnimationLayer().AddAnimation("Pistol_Fire", true);
+                //fpsModel.SetAnimationLayer("Pistol_Fire", 1.0f);
                 coolDownTimeRemaining = ResourceManager.Inst.GetAnimation("Pistol_Fire").EndTime;
                 float dist;
                 CollisionSkin skin;

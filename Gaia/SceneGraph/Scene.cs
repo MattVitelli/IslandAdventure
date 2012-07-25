@@ -322,7 +322,7 @@ namespace Gaia.SceneGraph
             AnimatedModel model = new AnimatedModel("Allosaurus");
             
             model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*68);
-            model.Model.SetAnimationLayer("AllosaurusIdle", 1.0f);
+            model.Model.GetAnimationLayer().SetActiveAnimation("AllosaurusIdle");//.SetAnimationLayer("AllosaurusIdle", 1.0f);
             model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
@@ -330,7 +330,7 @@ namespace Gaia.SceneGraph
             AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
 
             model2.Transformation.SetPosition(Vector3.Forward * -5 + Vector3.Up * 62);
-            model2.Model.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
+            model2.Model.GetAnimationLayer().SetActiveAnimation("AlphaRaptorIdle");//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
             model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
@@ -357,7 +357,6 @@ namespace Gaia.SceneGraph
             {
                 Entities.Values[i].OnUpdate();       
             }
-
 
             float timeStep = Time.GameTime.ElapsedTime;
             if (timeStep < 1.0f / 60.0f)
