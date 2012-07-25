@@ -20,7 +20,9 @@ namespace Gaia.Rendering
 
         public float mieHeight;
 
-        public float mieGain;   
+        public float mieGain;
+
+        public Texture2D cloudTexture;
     }
 
     public class SkyElementManager : RenderElementManager
@@ -29,6 +31,7 @@ namespace Gaia.Rendering
 
         Shader skyShaderPrepass;
         Shader skyShader;
+        Shader cloudShader;
         RenderTarget2D skyTexture;
 
         TextureResource nightTexture;
@@ -37,15 +40,21 @@ namespace Gaia.Rendering
         RenderTargetCube targetToRenderToCube = null;
         CubeMapFace faceToRenderOn;
 
+        Matrix cloudMatrix = Matrix.Identity;
+
         public SkyElementManager(RenderView renderView)
             : base(renderView)
         {
             skyShaderPrepass = ResourceManager.Inst.GetShader("SkyShaderPrepass");
             skyShader = ResourceManager.Inst.GetShader("SkyShader");
+            cloudShader = ResourceManager.Inst.GetShader("CloudShader");
 
             nightTexture = ResourceManager.Inst.GetTexture("Textures/Sky/StarrySky.dds");
 
-            skyTexture = new RenderTarget2D(GFX.Device, 32, 32, 1, SurfaceFormat.Color);
+            skyTexture = new RenderTarget2D(GFX.Device, 16, 16, 1, SurfaceFormat.Color);
+
+            cloudMatrix = Matrix.CreateRotationX(MathHelper.PiOver2); 
+            cloudMatrix.Translation = Vector3.Up * 0.1f;
         }
 
         public Texture2D GetTexture()
@@ -64,6 +73,31 @@ namespace Gaia.Rendering
             targetToRenderToCube = activeRT;
             faceToRenderOn = activeFace;
             this.Render();
+        }
+
+        void RenderClouds()
+        {
+            GFX.Device.RenderState.AlphaBlendEnable = true;
+            GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
+            GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
+
+            cloudShader.SetupShader();
+            Matrix[] matrices = new Matrix[2] { cloudMatrix, new Matrix(0.5f, 0.25f, 0.0024f, 0.0014f, 0.5f, 0.25f, 1.24f, 3.24f, 0.5f, 0.25f, 1.24f, 3.24f, 0.5f, 0.25f, 1.24f, 3.24f)};
+            GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_WORLD, matrices);
+
+
+            GFX.Inst.SetTextureAddressMode(0, TextureAddressMode.Wrap);
+            GFX.Inst.SetTextureFilter(0, TextureFilter.Anisotropic);
+
+            for (int i = 0; i < Elements.Count; i++)
+            {
+                if (Elements[i].cloudTexture != null)
+                {
+                    GFX.Device.Textures[0] = Elements[i].cloudTexture;
+                    GFXPrimitives.Quad.Render();
+                }
+            }
+            GFX.Device.RenderState.AlphaBlendEnable = false;
         }
 
         public override void Render()
@@ -97,7 +131,7 @@ namespace Gaia.Rendering
             }
 
             GFX.Device.Clear(Color.Black);
-
+            
             skyShader.SetupShader();
  
             GFX.Device.Textures[0] = skyTexture.GetTexture();
@@ -109,6 +143,8 @@ namespace Gaia.Rendering
             GFX.Device.SetPixelShaderConstant(0, Vector2.One / new Vector2(skyTexture.Width, skyTexture.Height));
 
             GFXPrimitives.Cube.Render();
+            
+            RenderClouds();
 
             GFX.Inst.ResetState();
             Elements.Clear();

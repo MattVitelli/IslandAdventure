@@ -33,8 +33,10 @@ namespace Gaia.SceneGraph.GameEntities
 
         CollisionSkin collision;
 
-        int L = 6;              // levels
-        public int N = 63;             // size of a level
+        int L = 4;
+        public int N = 127;
+        //int L = 6;              // levels
+        //public int N = 63;             // size of a level
         Clipmap[] clips;
 
         public float MaximumHeight;

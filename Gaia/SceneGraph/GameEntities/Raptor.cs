@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Gaia.Core;
-
+using Gaia.Resources;
 namespace Gaia.SceneGraph.GameEntities
 {
     public class Raptor : Actor
     {
         ViewModel model;
+        DinosaurDatablock datablock;
+
         const string IDLE_NAME = "AllosaurusIdle";
         const string RUN_NAME = "AllosaurusRunN";
         const string WALK_NAME = "AlphaRaptorWalk";
@@ -54,9 +56,10 @@ namespace Gaia.SceneGraph.GameEntities
 
         RaptorState state;
 
-        public Raptor()
+        public Raptor(DinosaurDatablock datablock)
         {
-            model = new ViewModel("Allosaurus");
+            this.datablock = datablock;
+            model = new ViewModel(datablock.MeshName);
 
             grounding.SetScale(Vector3.One * 0.09f);
             grounding.SetRotation(new Vector3(-MathHelper.PiOver2, MathHelper.Pi, 0));
@@ -65,7 +68,7 @@ namespace Gaia.SceneGraph.GameEntities
             grounding.SetPosition(Vector3.Up * (midPoint.Y - bounds.Min.Y) * grounding.GetScale() * 1.15f);
 
             model.SetCustomMatrix(grounding.GetTransform());
-            team = 3;
+            team = datablock.Team;
         }
 
         public override void OnAdd(Scene scene)
@@ -79,6 +82,7 @@ namespace Gaia.SceneGraph.GameEntities
             float vel = velocityVector.Length();
             if (vel < 0.01f)
             {
+                model.GetAnimationLayer().AddAnimation(datablock.Animations[(int)DinosaurAnimations.Idle][0]);
                 model.GetAnimationLayer().AddAnimation(IDLE_NAME);//.SetAnimationLayer(IDLE_NAME, 1.0f);
             }
             else

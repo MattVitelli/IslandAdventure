@@ -17,7 +17,7 @@ namespace Gaia.SceneGraph.GameEntities
     {
         public KDTree<ForestElement> visibleMeshes = new KDTree<ForestElement>(SceneCompareFunction);
         Mesh mesh;
-        const int entityCount = 3000;
+        const int entityCount = 2000;
 
         public override void OnAdd(Scene scene)
         {
@@ -79,8 +79,7 @@ namespace Gaia.SceneGraph.GameEntities
 
         public override void OnRender(RenderView view)
         {
-            if(view.GetRenderType() == RenderViewType.MAIN)
-                RecursivelyRender(visibleMeshes.GetRoot(), view);
+            RecursivelyRender(visibleMeshes.GetRoot(), view);
             base.OnRender(view);
         }
 

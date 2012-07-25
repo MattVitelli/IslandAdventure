@@ -83,9 +83,9 @@ namespace Gaia.Rendering
 
         void RenderComposite()
         {
-            GFX.Device.Clear(Color.TransparentBlack);
-            GFX.Device.RenderState.SourceBlend = Blend.One;
-            GFX.Device.RenderState.DestinationBlend = Blend.One;
+            //GFX.Device.Clear(Color.TransparentBlack);
+            GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
+            GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
             
             compositeShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / GFX.Inst.DisplayRes);
@@ -127,8 +127,8 @@ namespace Gaia.Rendering
 
         void RenderCompositeParticles()
         {
-            GFX.Device.RenderState.SourceBlend = Blend.One;
-            GFX.Device.RenderState.DestinationBlend = Blend.One;
+            GFX.Device.RenderState.SourceBlend = Blend.SourceAlpha;
+            GFX.Device.RenderState.DestinationBlend = Blend.InverseSourceAlpha;
             basicImageShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(GFXShaderConstants.VC_INVTEXRES, Vector2.One / new Vector2(mainRenderView.ParticleBuffer.Width, mainRenderView.ParticleBuffer.Height));
             GFX.Device.Textures[0] = mainRenderView.ParticleBuffer.GetTexture();

@@ -276,8 +276,8 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnRender(RenderView renderView)
         {
             BoundingFrustum frustum = renderView.GetFrustum();
-            if (renderView.GetRenderType() != RenderViewType.MAIN)
-                return;
+            //if (renderView.GetRenderType() != RenderViewType.MAIN)
+            //    return;
             for (int j = 0; j < patches.Count; j++)
             {
                 if (patches.Values[j].CanRender && frustum.Contains(patches.Values[j].Bounds) != ContainmentType.Disjoint)

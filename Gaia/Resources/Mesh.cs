@@ -30,7 +30,7 @@ namespace Gaia.Resources
         {
             Element = GFXPrimitives.CreateBillboardElement();
             ImposterMaterial = new Material();
-            Vector3 scale = (mesh.GetBounds().Max - mesh.GetBounds().Min) * 0.5f;
+            Vector3 scale = (mesh.GetBounds().Max - mesh.GetBounds().Min);
             Scale = Matrix.CreateScale(scale);
         }
     }
@@ -60,6 +60,10 @@ namespace Gaia.Resources
         Imposter imposterGeometry = null;
 
         public bool Rendered = true;
+
+        const float IMPOSTER_DISTANCE = 60;
+
+        const float IMPOSTER_DISTANCE_SQUARED = IMPOSTER_DISTANCE * IMPOSTER_DISTANCE;
 
         public VertexBuffer GetVertexBuffer(out int vertCount)
         {
@@ -680,13 +684,14 @@ namespace Gaia.Resources
             if (Rendered)
                 GFX.Inst.AddMeshToRender(this);
 
+            float distToCamera = Vector3.DistanceSquared(transform.Translation, view.GetPosition());
             if (performCulling)
             {
                 BoundingFrustum frustum = view.GetFrustum();
                 Matrix oldMat = frustum.Matrix;
                 frustum.Matrix = transform * view.GetViewProjection();
-                
-                if (imposterGeometry != null && frustum.Contains(meshBounds) != ContainmentType.Disjoint)
+
+                if (imposterGeometry != null && distToCamera >= IMPOSTER_DISTANCE_SQUARED && frustum.Contains(meshBounds) != ContainmentType.Disjoint)
                 {
                     if (!imposterGeometry.cachedTransforms.ContainsKey(view))
                         imposterGeometry.cachedTransforms.Add(view, new List<Matrix>());
@@ -714,7 +719,7 @@ namespace Gaia.Resources
             }
             else
             {
-                if (imposterGeometry != null)
+                if (imposterGeometry != null && distToCamera >= IMPOSTER_DISTANCE_SQUARED)
                 {
                     if (!imposterGeometry.cachedTransforms.ContainsKey(view))
                         imposterGeometry.cachedTransforms.Add(view, new List<Matrix>());
@@ -969,7 +974,7 @@ namespace Gaia.Resources
             imposterGeometry.ImposterMaterial.SetTexture(0, baseMap);
             imposterGeometry.ImposterMaterial.SetTexture(1, normalMap);
             imposterGeometry.ImposterMaterial.SetName(name + "_IMPOSTER_MATERIAL");
-            imposterGeometry.ImposterMaterial.IsFoliage = false;// true;
+            imposterGeometry.ImposterMaterial.IsFoliage = true;
         }
 
         void IResource.LoadFromXML(XmlNode node)

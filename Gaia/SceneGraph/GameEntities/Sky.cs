@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Gaia.Rendering;
 using Gaia.Rendering.RenderViews;
+using Gaia.Rendering.Simulators;
 
 namespace Gaia.SceneGraph.GameEntities
 {
@@ -12,8 +14,8 @@ namespace Gaia.SceneGraph.GameEntities
         const float invFactor = 0.0001f;
         const float Factor = 1.0f / invFactor;
         SkyRenderElement renderElement;
-        float rayleighExp = -4.593f;
-        float mieExp = -0.5624f;
+        float rayleighExp = -4;//-4.593f;
+        float mieExp = -0.84f;//- 0.5624f;
 
         public override void OnAdd(Scene scene)
         {
@@ -23,7 +25,11 @@ namespace Gaia.SceneGraph.GameEntities
             renderElement.rayleighGain = 9.235767f;
             renderElement.mieGain = 16.199024f;
             SetColor(new Vector3(0.8353f, 0.6119f, 0.4780f));
-
+            NoiseParameters cloudParams = new NoiseParameters(16, 0.49f, 0.018499f, 0.70999f);
+            renderElement.cloudTexture = GFX.Inst.PerlinNoiseGen.Generate2DNoise(cloudParams, 512, 512, 1);
+            //MieHeight = 15;
+            //RayleighHeight = 55;
+            //SetColor(new Vector3(0.65f, 0.57f, 0.475f));
             base.OnAdd(scene);
         }
 

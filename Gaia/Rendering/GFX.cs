@@ -69,6 +69,8 @@ namespace Gaia.Rendering
 
         public ParticleSimulator particleSystem;
 
+        public PerlinNoiseSimulator PerlinNoiseGen;
+
         public Queue<Mesh> meshesToRender = new Queue<Mesh>();
 
         ContentManager contentManager;
@@ -88,6 +90,8 @@ namespace Gaia.Rendering
         void InitializeSimulations()
         {
             particleSystem = new ParticleSimulator();
+
+            PerlinNoiseGen = new PerlinNoiseSimulator();
         }
 
         public void AdvanceSimulations(float timeDT)

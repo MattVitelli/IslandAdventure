@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Gaia.Rendering;
 using Gaia.Resources;
+using Gaia.Core;
 
 namespace Gaia.Rendering.Simulators
 {
@@ -28,7 +29,18 @@ namespace Gaia.Rendering.Simulators
         Shader noise2DShader;
         public PerlinNoiseSimulator()
         {
-            noise2DShader = ResourceManager.Inst.GetShader("PerlinNoise2DShader");
+            noise2DShader = new Shader();
+            noise2DShader.CompileFromFiles("Shaders/Procedural/PerlinNoise2D.hlsl", "Shaders/PostProcess/GenericV.hlsl");
+        }
+
+        Texture2D ComputeRandomTexture(int width, int height)
+        {
+            float[] randomData = new float[width * height];
+            for (int i = 0; i < randomData.Length; i++)
+                randomData[i] = (float)RandomHelper.RandomGen.NextDouble() * 2.0f - 1.0f;
+            Texture2D texture = new Texture2D(GFX.Device, width, height, 1, TextureUsage.None, SurfaceFormat.Single);
+            texture.SetData<float>(randomData);
+            return texture;
         }
 
         public Texture2D Generate2DNoise(NoiseParameters noiseParams, int width, int height, int mipCount)
@@ -37,6 +49,8 @@ namespace Gaia.Rendering.Simulators
             noise2DShader.SetupShader();
             GFX.Device.SetVertexShaderConstant(0, invRes);
             GFX.Device.SetPixelShaderConstant(0, invRes);
+            GFX.Device.SetPixelShaderConstant(1, new Vector4(noiseParams.Amplitude, noiseParams.Frequency, noiseParams.Persistance, noiseParams.Octaves));
+            GFX.Device.Textures[0] = ComputeRandomTexture(width / 2, height / 2);
 
             RenderTarget2D rtNoise = new RenderTarget2D(GFX.Device, width, height, 1, SurfaceFormat.Color);
             DepthStencilBuffer dsOld = GFX.Device.DepthStencilBuffer;
@@ -48,7 +62,7 @@ namespace Gaia.Rendering.Simulators
 
             Color[] colorData = new Color[width * height];
             rtNoise.GetTexture().GetData<Color>(colorData);
-            Texture2D noiseTexture = new Texture2D(GFX.Device, width, height, mipCount, TextureUsage.AutoGenerateMipMap, SurfaceFormat.Color);
+            Texture2D noiseTexture = new Texture2D(GFX.Device, width, height, mipCount, TextureUsage.None, SurfaceFormat.Color);
             noiseTexture.SetData<Color>(colorData);
             noiseTexture.GenerateMipMaps(TextureFilter.GaussianQuad);
             return noiseTexture;

@@ -197,11 +197,12 @@ namespace Gaia.Rendering.RenderViews
             }
             else
             {
+                /*
                 if (material.IsFoliage)
                 {
                     FoliageElementManager mgr = (FoliageElementManager)ElementManagers[RenderPass.Foliage];
                     mgr.AddElement(material, element);
-                }
+                }*/
                     if (material.IsEmissive)
                     {
                         Material mat = ResourceManager.Inst.GetMaterial(material.EmissiveMaterial);
