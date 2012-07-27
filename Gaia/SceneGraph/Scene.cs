@@ -22,7 +22,6 @@ namespace Gaia.SceneGraph
         public List<Actor> Actors = new List<Actor>();
         public SortedList<string, Entity> Entities = new SortedList<string, Entity>();
         PriorityQueue<int, RenderView> RenderViews = new PriorityQueue<int, RenderView>();
-        //KDTree<Entity> StaticEntityList = new KDTree<Entity>(EntityCompareFunction);
 
         public Light MainLight; //Our sunlight
         
@@ -286,11 +285,13 @@ namespace Gaia.SceneGraph
 
             Entities.Add("Sky", new Sky());
             MainLight = new Sunlight();
-            //MainTerrain = new TerrainVoxel();
-
-            MainTerrain = new TerrainHeightmap("Textures/Island_HM.png", 0, 200.0f);
-            MainTerrain.Transformation.SetScale(new Vector3(1, 200.0f/512.0f, 1) * 512.0f);
-            
+            MainTerrain = new TerrainVoxel();
+            /*
+            MainTerrain = new TerrainHeightmap("Textures/level1_hm.png", 0, 100.0f);
+            float width = (MainTerrain as TerrainHeightmap).GetWidth();
+            float height = (MainTerrain as TerrainHeightmap).MaximumHeight;
+            MainTerrain.Transformation.SetScale(new Vector3(1, height / width, 1) * width);
+            */
 
             MainPlayer = new Camera();
             
@@ -304,6 +305,7 @@ namespace Gaia.SceneGraph
             Entities.Add("TestTree2", new Model("JungleOverhang"));
             Entities["TestTree2"].Transformation.SetPosition(Vector3.Forward * 10.0f + Vector3.Right * 7.6f);
 
+            //AddEntity("Grass", new GrassPlacement());
             AddEntity("Forest", new ForestManager());
             //CreateForest();
 
@@ -322,7 +324,7 @@ namespace Gaia.SceneGraph
             AnimatedModel model = new AnimatedModel("Allosaurus");
             
             model.Transformation.SetPosition(Vector3.Forward*10+Vector3.Up*68);
-            model.Model.GetAnimationLayer().SetActiveAnimation("AllosaurusIdle");//.SetAnimationLayer("AllosaurusIdle", 1.0f);
+            model.Model.GetAnimationLayer().SetActiveAnimation("AllosaurusIdle", true);//.SetAnimationLayer("AllosaurusIdle", 1.0f);
             model.Model.SetCustomMatrix(Matrix.CreateScale(0.09f)*Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter", model);
@@ -330,13 +332,13 @@ namespace Gaia.SceneGraph
             AnimatedModel model2 = new AnimatedModel("AlphaRaptor");
 
             model2.Transformation.SetPosition(Vector3.Forward * -5 + Vector3.Up * 62);
-            model2.Model.GetAnimationLayer().SetActiveAnimation("AlphaRaptorIdle");//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
+            model2.Model.GetAnimationLayer().SetActiveAnimation("AlphaRaptorIdle", true);//.SetAnimationLayer("AlphaRaptorIdle", 1.0f);
             model2.Model.SetCustomMatrix(Matrix.CreateScale(0.12f) * Matrix.CreateRotationX(-MathHelper.PiOver2));
             //model.UpdateAnimation();
             Entities.Add("TestCharacter2", model2);
 
-            //Raptor raptor = new Raptor();
-            //Entities.Add("Raptor", raptor);
+            Raptor raptor = new Raptor(ResourceManager.Inst.GetDinosaurDatablock("Coelophysis"));
+            Entities.Add("Raptor", raptor);
 
             Chest weaponCrate = new Chest("Weapon Box", "WeaponBox");
             weaponCrate.Transformation.SetPosition(Vector3.Up * 30.0f);

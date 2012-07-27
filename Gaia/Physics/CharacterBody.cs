@@ -82,7 +82,7 @@ namespace Gaia.Physics
                 if (this == info.SkinInfo.Skin1.Owner)
                     Vector3.Negate(ref N, out N);
                 else
-                    contactNormal = Vector3.Normalize(N);
+                    contactNormal = Vector3.Normalize(Vector3.Lerp(N, contactNormal, 0.975f));
             }
 
             Vector3 deltaVel = DesiredVelocity - Velocity;

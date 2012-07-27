@@ -17,7 +17,7 @@ namespace Gaia.Resources
 
     public class AnimationSequence : IResource
     {
-        const float blendOutTime = 0.2f;
+        const float blendOutTime = 0.02f;
 
         float timeStart;
         float timeEnd = -1;

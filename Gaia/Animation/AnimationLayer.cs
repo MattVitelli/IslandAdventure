@@ -30,10 +30,11 @@ namespace Gaia.Animation
             this.model = model;
         }
 
-        public void SetActiveAnimation(string name)
+        public void SetActiveAnimation(string name, bool firstInit)
         {
             this.activeAnimation = ResourceManager.Inst.GetAnimation(name);
-            InitializeFrames();
+            if(firstInit)
+                InitializeFrames();
         }
 
         public void AddAnimation(string animationName)

@@ -10,6 +10,7 @@ namespace Gaia.SceneGraph.GameEntities
         ViewModel model;
         DinosaurDatablock datablock;
 
+        /*
         const string IDLE_NAME = "AllosaurusIdle";
         const string RUN_NAME = "AllosaurusRunN";
         const string WALK_NAME = "AlphaRaptorWalk";
@@ -22,7 +23,7 @@ namespace Gaia.SceneGraph.GameEntities
         const string LEAPIDLE_NAME = "AlphaRaptorLeapIdle";
         const string LEAPEND_NAME = "AlphaRaptorLeapEnd";
         const string LEAPATTACK_NAME = "AlphaRaptorLeapAttack";
-
+        */
 
         public enum RaptorState
         {
@@ -48,8 +49,10 @@ namespace Gaia.SceneGraph.GameEntities
         Vector3 wanderStartPosition;
         float wanderDelayTime;
 
+        float animationDelay = 0;
+
         Vector3 velocityVector = Vector3.Zero;
-        const float speed =  9.5f;
+        const float speed =  7.5f;
         NormalTransform grounding = new NormalTransform();
 
         Actor enemy = null;
@@ -60,12 +63,11 @@ namespace Gaia.SceneGraph.GameEntities
         {
             this.datablock = datablock;
             model = new ViewModel(datablock.MeshName);
+            model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Idle), true);
 
-            grounding.SetScale(Vector3.One * 0.09f);
-            grounding.SetRotation(new Vector3(-MathHelper.PiOver2, MathHelper.Pi, 0));
-            BoundingBox bounds = model.GetMeshBounds();
-            Vector3 midPoint = (bounds.Max + bounds.Min) * 0.5f;
-            grounding.SetPosition(Vector3.Up * (midPoint.Y - bounds.Min.Y) * grounding.GetScale() * 1.15f);
+            grounding.SetScale(datablock.Scale);
+            grounding.SetRotation(datablock.Rotation);
+            grounding.SetPosition(datablock.Position);
 
             model.SetCustomMatrix(grounding.GetTransform());
             team = datablock.Team;
@@ -79,26 +81,32 @@ namespace Gaia.SceneGraph.GameEntities
 
         void UpdateAnimation()
         {
+            if (IsDead())
+                return;
+
             float vel = velocityVector.Length();
-            if (vel < 0.01f)
+            if (vel < 0.015f)
             {
-                model.GetAnimationLayer().AddAnimation(datablock.Animations[(int)DinosaurAnimations.Idle][0]);
-                model.GetAnimationLayer().AddAnimation(IDLE_NAME);//.SetAnimationLayer(IDLE_NAME, 1.0f);
+                model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Idle), false);
             }
             else
             {
                 //model.SetAnimationLayer(IDLE_NAME, 0.0f);
-                float walkWeight = MathHelper.Clamp((3.5f - vel) / 3.5f, 0.0f, 1.0f);
+                float walkWeight = MathHelper.Clamp(1 - vel / 3.5f, 0.0f, 1.0f);
                 float runWeight = 1.0f - walkWeight;
-                //model.SetAnimationLayer(WALK_NAME, walkWeight);
-                model.GetAnimationLayer().AddAnimation(RUN_NAME);//.SetAnimationLayer(RUN_NAME, 1.0f);
-                //model.SetAnimationLayer(ATTACK_NAME, 0.0f);
+                if (walkWeight > 0.5f)
+                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Walk), false);
+                else
+                    model.GetAnimationLayer().SetActiveAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.Run), false);
             }
             if (state == RaptorState.Attack)
             {
-                //model.SetAnimationLayer(RUN_NAME, 0.0f);
-                model.GetAnimationLayer().AddAnimation(MELEE_NAME, true);
-                //model.SetAnimationLayer(MELEE_NAME, 1.0f);
+                if (animationDelay <= 0.0f)
+                {
+                    string attackAnim = datablock.GetAnimation(DinosaurAnimationsSimple.Attack);
+                    model.GetAnimationLayer().AddAnimation(attackAnim, true);
+                    animationDelay = ResourceManager.Inst.GetAnimation(attackAnim).EndTime;
+                }
             }
             //grounding.SetForwardVector(Vector3.Normalize(velocityVector));
             if (velocityVector.Length() > 0.01f)
@@ -155,15 +163,22 @@ namespace Gaia.SceneGraph.GameEntities
         {
             Vector3 forwardVec = this.Transformation.GetTransform().Forward;
             Vector3 strafeVec = this.Transformation.GetTransform().Right;
-            
-            float radianAngle = (float)Math.Acos(Vector3.Dot(forwardVec, moveDir));//Y * moveDir.Y);
+
+            float radianAngle = (float)Math.Acos(Vector3.Dot(forwardVec, moveDir));
             Vector3 rot = Transformation.GetRotation();
-            if (radianAngle >= 0.075f)
+            if (Math.Abs(radianAngle) >= 0.075f)
             {
+                radianAngle = MathHelper.Clamp(radianAngle, -1, 1);
                 if (Vector3.Dot(strafeVec, moveDir) < 0)
+                {
                     rot.Y += radianAngle * 0.02f;
+                    //model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.TurnLeft), true);
+                }
                 else
+                {
                     rot.Y -= radianAngle * 0.02f;
+                    //model.GetAnimationLayer().AddAnimation(datablock.GetAnimation(DinosaurAnimationsSimple.TurnRight), true);
+                }
             }
             //Transformation.SetRotation(rot);
             velocityVector = moveDir * speed;
@@ -201,6 +216,7 @@ namespace Gaia.SceneGraph.GameEntities
             }
             float distanceToTarget = float.PositiveInfinity;
             Vector3 targetVec = Vector3.Forward;
+            animationDelay -= Time.GameTime.ElapsedTime;
 
             if (enemy != null)
             {
@@ -246,8 +262,13 @@ namespace Gaia.SceneGraph.GameEntities
                     }
                     else
                     {
-                        Move(targetVec);
+                        if(distanceToTarget > ATTACK_DISTANCE)
+                            Move(targetVec);
                         state = RaptorState.Attack;
+                        if (animationDelay <= 0.0f)
+                        {
+                            enemy.ApplyDamage(datablock.Damage);
+                        }
                         //Attack
                     }
                     break;

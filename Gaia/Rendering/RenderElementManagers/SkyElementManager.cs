@@ -54,7 +54,7 @@ namespace Gaia.Rendering
             skyTexture = new RenderTarget2D(GFX.Device, 16, 16, 1, SurfaceFormat.Color);
 
             cloudMatrix = Matrix.CreateRotationX(MathHelper.PiOver2); 
-            cloudMatrix.Translation = Vector3.Up * 0.1f;
+            cloudMatrix.Translation = Vector3.Up * 0.09f;
         }
 
         public Texture2D GetTexture()

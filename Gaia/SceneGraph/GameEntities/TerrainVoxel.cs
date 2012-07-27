@@ -58,13 +58,16 @@ namespace Gaia.SceneGraph.GameEntities
 
         public int[] surfaceIndices;
 
+        List<TriangleGraph> availableTriangles;
+
         public TerrainVoxel()
         {
             Transformation.SetScale(Vector3.One * TerrainSize);
             Transformation.SetPosition(Vector3.Up * TerrainSize * 0.25f);
-            GenerateFloatingIslands(64);
+            GenerateFloatingIslands(128);
             terrainMaterial = ResourceManager.Inst.GetMaterial("TerrainMaterial");
             climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
+            PrepareTriangles();
         }
 
         public TerrainVoxel(string filename)
@@ -76,6 +79,13 @@ namespace Gaia.SceneGraph.GameEntities
             climate = ResourceManager.Inst.GetTerrainClimate("TestTerrain");
 
             GenerateTerrainFromFile(filename);
+        }
+
+        void PrepareTriangles()
+        {
+            availableTriangles = new List<TriangleGraph>();
+            BoundingBox region = Transformation.GetBounds();
+            GetTrianglesInRegion(RandomHelper.RandomGen, out availableTriangles, region);
         }
 
         void AssembleTextureAtlas(Texture3D target, Texture2D[] srcTextures, int textureSize, int mipCount)
@@ -146,6 +156,12 @@ namespace Gaia.SceneGraph.GameEntities
         */
         public override void GenerateRandomTransform(Random rand, out Vector3 position, out Vector3 normal)
         {
+            int randomIndex = rand.Next(0, availableTriangles.Count);
+            TriangleGraph triangle = availableTriangles[randomIndex];
+            position = triangle.GeneratePointInTriangle(RandomHelper.RandomGen);
+            normal = triangle.Normal;
+            return;
+
             int bestY = -1;
             int randX = 0;
             int randZ = 0;

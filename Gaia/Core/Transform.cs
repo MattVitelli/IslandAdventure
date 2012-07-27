@@ -100,6 +100,7 @@ namespace Gaia.Core
             if (body == null)
             {
                 worldMatrix = Matrix.CreateScale(scale) * Matrix.CreateRotationX(rotation.X) * Matrix.CreateRotationY(rotation.Y) * Matrix.CreateRotationZ(rotation.Z);
+                //worldMatrix = MathUtils.CreateWorld(scale, rotation, position);
                 //worldMatrix = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(rotation.Y, rotation.X, rotation.Z);
                 worldMatrix.Translation = position;
                 dirtyMatrix = false;

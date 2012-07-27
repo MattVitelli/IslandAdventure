@@ -52,6 +52,11 @@ namespace Gaia.SceneGraph.GameEntities
             return health / MAX_HEALTH;
         }
 
+        public void ApplyDamage(float damage)
+        {
+            health -= damage;
+        }
+
         protected CharacterBody body;
 
         protected CollisionSkin collision;
@@ -68,8 +73,10 @@ namespace Gaia.SceneGraph.GameEntities
             PhysicsSystem world = scene.GetPhysicsEngine();
             
             Vector3 pos = Vector3.Up * 256 + 15*(new Vector3((float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble(), (float)RandomHelper.RandomGen.NextDouble())*2-Vector3.One);
+            //pos.X += (scene.MainTerrain as TerrainHeightmap).GetWidth()*0.5f;
+            //pos.Z += (scene.MainTerrain as TerrainHeightmap).GetDepth() * 0.5f;
             Vector3 normal = Vector3.Up;
-            scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
+            //scene.MainTerrain.GenerateRandomTransform(RandomHelper.RandomGen, out pos, out normal);
             //pos = pos + Vector3.Up * 5;
 
             body = new CharacterBody();

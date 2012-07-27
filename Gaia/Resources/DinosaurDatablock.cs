@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Xml;
 using Gaia.Core;
+using Microsoft.Xna.Framework;
+
 namespace Gaia.Resources
 {
     public enum DinosaurAnimations
@@ -69,10 +71,32 @@ namespace Gaia.Resources
 
         public int Team;
 
+        public float HerdBonus = 0.0f;
+
+        public int HerdSize = 1;
+
+        public Vector3 Scale = Vector3.One;
+
+        public Vector3 Rotation = Vector3.Zero;
+
+        public Vector3 Position = Vector3.Zero;
+
         public string GetAnimation(DinosaurAnimations anim)
         {
             int index = (int)anim;
             if(Animations[index].Count == 0)
+                return string.Empty;
+            if (Animations[index].Count == 1)
+                return Animations[index][0];
+
+            int randIndex = RandomHelper.RandomGen.Next(0, Animations[index].Count);
+            return Animations[index][randIndex];
+        }
+
+        public string GetAnimation(DinosaurAnimationsSimple anim)
+        {
+            int index = (int)anim;
+            if (Animations[index].Count == 0)
                 return string.Empty;
             if (Animations[index].Count == 1)
                 return Animations[index][0];
@@ -119,9 +143,15 @@ namespace Gaia.Resources
                         break;
                     case "mesh":
                         MeshName = attrib.Value;
-                        break;
+                        break; 
                     case "team":
                         Team = int.Parse(attrib.Value);
+                        break;
+                    case "herdbonus":
+                        HerdBonus = float.Parse(attrib.Value);
+                        break;
+                    case "herdsize":
+                        HerdSize = int.Parse(attrib.Value);
                         break;
                     case "animationtype":
                         switch (attrib.Value.ToLower())
@@ -139,7 +169,18 @@ namespace Gaia.Resources
                         break;
                     case "animation":
                         int index = int.Parse(attribs[1]);
+                        if (Animations[index] == null)
+                            Animations[index] = new List<string>();
                         Animations[index].Add(attrib.Value);
+                        break;
+                    case "scale":
+                        Scale = ParseUtils.ParseVector3(attrib.Value);
+                        break;
+                    case "rotation":
+                        Rotation = ParseUtils.ParseVector3(attrib.Value);
+                        break;
+                    case "position":
+                        Position = ParseUtils.ParseVector3(attrib.Value);
                         break;
                 }
             }

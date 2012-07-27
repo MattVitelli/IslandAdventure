@@ -197,7 +197,7 @@ namespace Gaia.SceneGraph.GameEntities
                     float height = terrain.GetHeightValue(loc.X, loc.Y);
                     float randX = (float)loc.X + (float)RandomHelper.RandomGen.NextDouble();
                     float randZ = (float)loc.Y + (float)RandomHelper.RandomGen.NextDouble();
-                    float randScale = MathHelper.Lerp(0.95f, 3.0f, (float)RandomHelper.RandomGen.NextDouble());
+                    float randScale = MathHelper.Lerp(1.25f, 3.0f, (float)RandomHelper.RandomGen.NextDouble());
                     Vector3 posWorldSpace = new Vector3(randX, height, randZ);// Vector3.Transform(new Vector3((randX / (float)width) * 2.0f - 1.0f, height, (randZ / (float)depth) * 2.0f - 1.0f), terrain.Transformation.GetTransform());
                     currPatch.Elements[i].Transform[j] = Matrix.CreateScale(randScale);
                     currPatch.Elements[i].Transform[j].Translation = posWorldSpace;
@@ -276,8 +276,6 @@ namespace Gaia.SceneGraph.GameEntities
         public void OnRender(RenderView renderView)
         {
             BoundingFrustum frustum = renderView.GetFrustum();
-            //if (renderView.GetRenderType() != RenderViewType.MAIN)
-            //    return;
             for (int j = 0; j < patches.Count; j++)
             {
                 if (patches.Values[j].CanRender && frustum.Contains(patches.Values[j].Bounds) != ContainmentType.Disjoint)

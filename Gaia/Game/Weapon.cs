@@ -31,7 +31,7 @@ namespace Gaia.Game
             fpsModel.SetTransform(transform);
             Matrix weaponTransform = Matrix.CreateScale(0.1f) * Matrix.CreateRotationX(-MathHelper.PiOver2) * Matrix.CreateRotationY(MathHelper.PiOver2);
             fpsModel.SetCustomMatrix(weaponTransform);
-            fpsModel.GetAnimationLayer().SetActiveAnimation("Pistol_Idle");//.SetAnimationLayer("Pistol_Idle", 1);
+            fpsModel.GetAnimationLayer().SetActiveAnimation("Pistol_Idle", true);//.SetAnimationLayer("Pistol_Idle", 1);
         }
 
         public void OnUpdate()

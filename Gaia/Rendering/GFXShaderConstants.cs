@@ -30,7 +30,7 @@ namespace Gaia.Rendering
 
         public static int ALPHACUTOFF = 158;
 
-        public static int NUM_SPLITS = 6;
+        public static int NUM_SPLITS = 4;
         
         public static int NUM_INSTANCES = 60;
 
